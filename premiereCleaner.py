@@ -8,15 +8,15 @@ import fnmatch
 
 
 TRACEBACKPRINT = True
-DELETING = True
+DELETING = False
 #PATH = 'D:\cap17 26092016\proyecto 17\\'
 PATH = 'D:\\test\\'
 
 def main():
     print ' *** Adobe Premiere Pro Cleaner ***' \
           '\nClean the Premiere Projects before backuping or moving it anywhere deleting unnecessary preview files, and audio / video renders for real time editing: .CFA, .PEK, .AVI.' \
-          '\nParameter' \
-          '\nInput example: D:\\test\\ 0'
+          '' \
+          '\nInput example: D:\\test\\'
     input_path = raw_input("Introduce ruta a escanear: ")
 
     PATH = input_path
@@ -39,20 +39,20 @@ def main():
             if file.endswith(".pek"):
                 contadorPEK += 1
                 if TRACEBACKPRINT:
-                    print file
+                    print '\t' + file
                 if DELETING:
                     os.remove(os.path.join(root, file))
 
             if file.endswith(".cfa"):
                 contadorCFA += 1
                 if TRACEBACKPRINT:
-                    print file
+                    print '\t' + file
                 if DELETING:
                     os.remove(os.path.join(root, file))
             if fnmatch.fnmatch(file, 'Rendered - *.AVI'):
                 contadorAVI += 1
                 if TRACEBACKPRINT:
-                    print file
+                    print '\t' + file
                 if DELETING:
                     os.remove(os.path.join(root, file))
 
