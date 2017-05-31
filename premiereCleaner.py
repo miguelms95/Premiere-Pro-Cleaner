@@ -13,6 +13,14 @@ DELETING = True
 PATH = 'D:\\test\\'
 
 def main():
+    print ' *** Adobe Premiere Pro Cleaner ***' \
+          '\nClean the Premiere Projects before backuping or moving it anywhere deleting unnecessary preview files, and audio / video renders for real time editing: .CFA, .PEK, .AVI.' \
+          '\nParameter' \
+          '\nInput example: D:\\test\\ 0'
+    input_path = raw_input("Introduce ruta a escanear: ")
+
+    PATH = input_path
+
     contadorPEK = 0
     contadorCFA = 0
     contadorAVI = 0
