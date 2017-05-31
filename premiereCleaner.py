@@ -10,13 +10,16 @@ contadorCFA = 0
 contadorAVI = 0
 
 TRACEBACKPRINT = True
-DELETING = True
+DELETING = False
 PATH = 'D:\cap17 26092016\proyecto 17\\'
 
 for root, dirs, files in os.walk(PATH):
     for directorio in dirs:
         if directorio.endswith(".PRV"):
             print directorio
+            list = os.listdir(os.path.join(root, directorio))
+            countfiles = len(list)
+            print countfiles
     for file in files:
         if file.endswith(".pek"):
             contadorPEK += 1
