@@ -5,17 +5,15 @@ from os import listdir
 import glob
 import fnmatch
 
-
-os.chdir('D:\cap17 26092016\proyecto 17\\')
-
 contadorPEK = 0
 contadorCFA = 0
 contadorAVI = 0
 
 TRACEBACKPRINT = True
 DELETING = True
+PATH = 'D:\cap17 26092016\proyecto 17\\'
 
-for root, dirs, files in os.walk('D:\cap17 26092016\proyecto 17\\'):
+for root, dirs, files in os.walk(PATH):
     for directorio in dirs:
         if directorio.endswith(".PRV"):
             print directorio
