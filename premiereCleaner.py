@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
-import sys
 import os
-from os import listdir
-import glob
 import fnmatch
 
-
-
 TRACEBACKPRINT = True
-DELETING = False
+DELETING = True
 #PATH = 'D:\cap17 26092016\proyecto 17\\'
 PATH = 'D:\\test\\'
 
@@ -25,6 +20,10 @@ def main():
     contadorCFA = 0
     contadorAVI = 0
 
+    PEKsize = 0
+    CFAsize = 0
+    AVIsize = 0
+
     for root, dirs, files in os.walk(PATH):
         for directory in dirs:
             if directory.endswith(".PRV"):
@@ -33,33 +32,42 @@ def main():
                 print directory + ', archivos: ' + str(countfiles)
                 if DELETING:
                     if (countfiles == 0):
-                        print 'tiene 0 archivos'
+                        #print 'tiene 0 archivos'
                         os.rmdir(os.path.join(root, directory))
         for file in files:
+
             if file.endswith(".pek"):
+                statinfo = os.stat(os.path.join(root, file))
                 contadorPEK += 1
+                PEKsize += statinfo.st_size
                 if TRACEBACKPRINT:
-                    print '\t' + file
+                    print '\t' + file + ' - ' + str(statinfo.st_size) + ' Bytes'
                 if DELETING:
                     os.remove(os.path.join(root, file))
 
             if file.endswith(".cfa"):
+                statinfo = os.stat(os.path.join(root, file))
                 contadorCFA += 1
+                CFAsize += statinfo.st_size
                 if TRACEBACKPRINT:
-                    print '\t' + file
+                    print '\t' + file + ' - ' + str(statinfo.st_size) + ' Bytes'
                 if DELETING:
                     os.remove(os.path.join(root, file))
             if fnmatch.fnmatch(file, 'Rendered - *.AVI'):
+                statinfo = os.stat(os.path.join(root, file))
                 contadorAVI += 1
+                AVIsize += statinfo.st_size
                 if TRACEBACKPRINT:
-                    print '\t' + file
+                    print '\t' + file + ' - ' + str(statinfo.st_size) + ' Bytes'
                 if DELETING:
                     os.remove(os.path.join(root, file))
 
     print '\n\n #### DATOS ####'
-    print str(contadorAVI) + " archivos AVI eliminados"
-    print str(contadorPEK) + " archivos PEK eliminados"
-    print str(contadorCFA) + " archivos CFA eliminados"
+    print str(contadorAVI) + " archivos AVI eliminados" + ' - ' + str(AVIsize) + ' Bytes = ' + str((AVIsize*1.0)/1000000000.0) + ' GB'
+    print str(contadorPEK) + " archivos PEK eliminados" + ' - ' + str(PEKsize) + ' Bytes = ' + str((PEKsize*1.0)/1000000000.0) + ' GB'
+    print str(contadorCFA) + " archivos CFA eliminados" + ' - ' + str(CFAsize) + ' Bytes = ' + str((CFAsize*1.0)/1000000000.0) + ' GB'
+    totalSize = AVIsize + PEKsize + CFAsize
+    print 'Tamaño total: ' + str(totalSize) + ' Bytes = ' + str((totalSize*1.0)/1000000000.0) + ' GB'
 
     raw_input("\nPresiona una tecla para cerrar...")
     exit(0)
