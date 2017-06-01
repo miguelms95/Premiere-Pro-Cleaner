@@ -4,7 +4,6 @@ import fnmatch
 
 TRACEBACKPRINT = True
 DELETING = True
-#PATH = 'D:\cap17 26092016\proyecto 17\\'
 PATH = 'D:\\test\\'
 
 def main():
@@ -74,4 +73,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
