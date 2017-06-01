@@ -67,7 +67,7 @@ def main():
     print str(contadorPEK) + " archivos PEK eliminados" + ' - ' + str(PEKsize) + ' Bytes = ' + str((PEKsize*1.0)/1000000000.0) + ' GB'
     print str(contadorCFA) + " archivos CFA eliminados" + ' - ' + str(CFAsize) + ' Bytes = ' + str((CFAsize*1.0)/1000000000.0) + ' GB'
     totalSize = AVIsize + PEKsize + CFAsize
-    print 'Tamaño total: ' + str(totalSize) + ' Bytes = ' + str((totalSize*1.0)/1000000000.0) + ' GB'
+    print 'Espacio total liberado: ' + str(totalSize) + ' Bytes = ' + str((totalSize*1.0)/1000000000.0) + ' GB'
 
     raw_input("\nPresiona una tecla para cerrar...")
     exit(0)
@@ -75,14 +75,3 @@ def main():
 if __name__ == '__main__':
     main()
 
-'''
-listFiles = glob.glob('*.pek')
-for file in listFiles:
-    print file
-
-
-for item in test:
-    if item.endswith(".pek"):
-        print os.path.join( directory, item )
-        os.remove( os.path.join( directory, item ) )
-'''
