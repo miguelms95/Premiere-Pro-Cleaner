@@ -11,7 +11,8 @@ def main():
           '\nClean the Premiere Projects before backuping or moving it anywhere deleting unnecessary preview files, and audio / video renders for real time editing: .CFA, .PEK, .AVI.' \
           '' \
           '\nInput example: D:\\test\\'
-    input_path = raw_input("Introduce ruta a escanear: ")
+
+    input_path = raw_input("Intorduce path to scan: ")
 
     PATH = input_path
 
@@ -68,7 +69,8 @@ def main():
     totalSize = AVIsize + PEKsize + CFAsize
     print 'Espacio total liberado: ' + str(totalSize) + ' Bytes = ' + str((totalSize*1.0)/1000000000.0) + ' GB'
 
-    raw_input("\nPresiona una tecla para cerrar...")
+    #raw_input("\nPresiona una tecla para cerrar...")
+    raw_input("\nPress any key to exit...")
     exit(0)
 
 if __name__ == '__main__':
