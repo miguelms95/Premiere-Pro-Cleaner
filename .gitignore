@@ -16,6 +16,13 @@ $RECYCLE.BIN/
 .idea/
 test/
 
+.metadata/
+.recommenders/
+.settings/
+bin/
+.project
+.classpath
+
 # Windows shortcuts
 *.lnk
 
