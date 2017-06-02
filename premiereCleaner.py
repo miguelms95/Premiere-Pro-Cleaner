@@ -12,7 +12,7 @@ def main():
           '' \
           '\nInput example: D:\\test\\'
 
-    input_path = raw_input("Intorduce path to scan: ")
+    input_path = raw_input("Introduce path to scan: ")
 
     PATH = input_path
 
