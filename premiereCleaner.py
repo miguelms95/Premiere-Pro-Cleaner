@@ -30,10 +30,6 @@ def main():
                 list = os.listdir(os.path.join(root, directory))
                 countfiles = len(list)
                 print directory + ', archivos: ' + str(countfiles)
-                if DELETING:
-                    if (countfiles == 0):
-                        #print 'tiene 0 archivos'
-                        os.rmdir(os.path.join(root, directory))
         for file in files:
 
             if file.endswith(".pek"):
@@ -61,6 +57,13 @@ def main():
                     print '\t' + file + ' - ' + str(statinfo.st_size) + ' Bytes'
                 if DELETING:
                     os.remove(os.path.join(root, file))
+        for directory in dirs:
+            if directory.endswith(".PRV"):
+                list = os.listdir(os.path.join(root, directory))
+                countfiles = len(list)
+                if DELETING:
+                    if (countfiles == 0):
+                        os.rmdir(os.path.join(root, directory))
 
     print '\n\n#### DATOS eliminados ####'
     print str(contadorAVI) + " archivos AVI" + ' - ' + str(AVIsize) + ' Bytes = ' + str((AVIsize*1.0)/1000000000.0) + ' GB'
