@@ -62,10 +62,10 @@ def main():
                 if DELETING:
                     os.remove(os.path.join(root, file))
 
-    print '\n\n#### DATOS ####'
-    print str(contadorAVI) + " archivos AVI eliminados" + ' - ' + str(AVIsize) + ' Bytes = ' + str((AVIsize*1.0)/1000000000.0) + ' GB'
-    print str(contadorPEK) + " archivos PEK eliminados" + ' - ' + str(PEKsize) + ' Bytes = ' + str((PEKsize*1.0)/1000000000.0) + ' GB'
-    print str(contadorCFA) + " archivos CFA eliminados" + ' - ' + str(CFAsize) + ' Bytes = ' + str((CFAsize*1.0)/1000000000.0) + ' GB'
+    print '\n\n#### DATOS eliminados ####'
+    print str(contadorAVI) + " archivos AVI" + ' - ' + str(AVIsize) + ' Bytes = ' + str((AVIsize*1.0)/1000000000.0) + ' GB'
+    print str(contadorPEK) + " archivos PEK" + ' - ' + str(PEKsize) + ' Bytes = ' + str((PEKsize*1.0)/1000000000.0) + ' GB'
+    print str(contadorCFA) + " archivos CFA" + ' - ' + str(CFAsize) + ' Bytes = ' + str((CFAsize*1.0)/1000000000.0) + ' GB'
     totalSize = AVIsize + PEKsize + CFAsize
     print 'Espacio total liberado: ' + str(totalSize) + ' Bytes = ' + str((totalSize*1.0)/1000000000.0) + ' GB'
 
