@@ -10,7 +10,7 @@ def main():
     print ' *** Adobe Premiere Pro Cleaner ***' \
           '\nClean the Premiere Projects before backuping or moving it anywhere deleting unnecessary preview files, and audio / video renders for real time editing: .CFA, .PEK, .AVI.' \
           '' \
-          '\nInput example: D:\\test\\'
+          '\nInput example: D:\\test\\' 
 
     input_path = raw_input("Introduce path to scan: ")
 
@@ -29,7 +29,7 @@ def main():
             if directory.endswith(".PRV"):
                 list = os.listdir(os.path.join(root, directory))
                 countfiles = len(list)
-                print directory + ', archivos: ' + str(countfiles)
+                print directory + ', files: ' + str(countfiles)
         for file in files:
 
             if file.endswith(".pek"):
@@ -66,11 +66,11 @@ def main():
                         os.rmdir(os.path.join(root, directory))
 
     print '\n\n#### DATOS eliminados ####'
-    print str(contadorAVI) + " archivos AVI" + ' - ' + str(AVIsize) + ' Bytes = ' + str((AVIsize*1.0)/1000000000.0) + ' GB'
-    print str(contadorPEK) + " archivos PEK" + ' - ' + str(PEKsize) + ' Bytes = ' + str((PEKsize*1.0)/1000000000.0) + ' GB'
-    print str(contadorCFA) + " archivos CFA" + ' - ' + str(CFAsize) + ' Bytes = ' + str((CFAsize*1.0)/1000000000.0) + ' GB'
+    print str(contadorAVI) + " AVI files" + ' - ' + str(AVIsize) + ' Bytes = ' + str((AVIsize*1.0)/1000000000.0) + ' GB'
+    print str(contadorPEK) + " PEK files" + ' - ' + str(PEKsize) + ' Bytes = ' + str((PEKsize*1.0)/1000000000.0) + ' GB'
+    print str(contadorCFA) + " CFA files" + ' - ' + str(CFAsize) + ' Bytes = ' + str((CFAsize*1.0)/1000000000.0) + ' GB'
     totalSize = AVIsize + PEKsize + CFAsize
-    print 'Espacio total liberado: ' + str(totalSize) + ' Bytes = ' + str((totalSize*1.0)/1000000000.0) + ' GB'
+    print 'Space cleaned: ' + str(totalSize) + ' Bytes = ' + str((totalSize*1.0)/1000000000.0) + ' GB'
 
     #raw_input("\nPresiona una tecla para cerrar...")
     raw_input("\nPress any key to exit...")
