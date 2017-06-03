@@ -12,9 +12,14 @@ import java.awt.Font;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
 import java.awt.GridLayout;
+import java.io.File;
+import java.util.ArrayList;
+
 import javax.swing.JTextField;
 import java.awt.FlowLayout;
 import java.awt.Color;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -36,6 +41,8 @@ public class VentanaPrincipal extends JFrame {
 	private JTextField txPathSeleccionado;
 	private JButton btLimpiar;
 
+	private ArrayList<File> listaArchivos;
+	
 	/**
 	 * Launch the application.
 	 */
@@ -154,10 +161,37 @@ public class VentanaPrincipal extends JFrame {
 	}
 	private JButton getBtLimpiar() {
 		if (btLimpiar == null) {
-			btLimpiar = new JButton("Limpiar");
+			btLimpiar = new JButton("Ejecutar");
+			btLimpiar.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					escanearArchivos(txPathSeleccionado.getText(), listaArchivos);
+					
+				}
+			});
 			btLimpiar.setFont(new Font("Tahoma", Font.BOLD, 11));
 			btLimpiar.setForeground(Color.BLACK);
 		}
 		return btLimpiar;
+	}
+	
+	public void escanearArchivos(String directoryName, ArrayList<File> files) {
+	    File directorio = new File(directoryName);
+
+	    File[] fList = directorio.listFiles();
+	    for (File file : fList) {
+	        if (file.isFile()) {
+	            files.add(file);
+	        } else if (file.isDirectory()) {
+	            escanearArchivos(file.getAbsolutePath(), files);
+	        }
+	    }
+	}
+	
+	private void rellenaListaArchivos(){
+		String cadena = "";
+		for (File file : listaArchivos) {
+			cadena += file.getAbsolutePath();
+		}
+		txAreaLog.setText(cadena);
 	}
 }
