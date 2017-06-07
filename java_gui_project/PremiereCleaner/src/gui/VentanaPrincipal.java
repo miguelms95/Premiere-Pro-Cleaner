@@ -50,7 +50,7 @@ public class VentanaPrincipal extends JFrame {
 	private JPanel panel_1;
 	private JPanel panel_2;
 	private JTextField txPathSeleccionado;
-	private JButton btLimpiar;
+	private JButton btEjecutar;
 	private final String DEFAULT_PATH = "D:\\";
 	
 	VentanaPrincipal vp;
@@ -169,7 +169,7 @@ public class VentanaPrincipal extends JFrame {
 			panel_2 = new JPanel();
 			FlowLayout flowLayout = (FlowLayout) panel_2.getLayout();
 			panel_2.add(getTxPathSeleccionado());
-			panel_2.add(getBtLimpiar());
+			panel_2.add(getBtEjecutar());
 		}
 		return panel_2;
 	}
@@ -182,57 +182,58 @@ public class VentanaPrincipal extends JFrame {
 		}
 		return txPathSeleccionado;
 	}
-	private JButton getBtLimpiar() {
-		if (btLimpiar == null) {
-			btLimpiar = new JButton("Ejecutar");
-			btLimpiar.addActionListener(new ActionListener() {
+	private JButton getBtEjecutar() {
+		if (btEjecutar == null) {
+			btEjecutar = new JButton("Ejecutar");
+			btEjecutar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					ejecutarPrograma();
 					//System.err.println(txPathSeleccionado.getText());
 					//rellenaListaArchivos();
 				}
 			});
-			btLimpiar.setFont(new Font("Tahoma", Font.PLAIN, 11));
+			btEjecutar.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		}
-		return btLimpiar;
+		return btEjecutar;
 	}
 
 	public void escanearArchivos(String directoryName) {
 	    File directorio = new File(directoryName);
-
-	    File[] fList = directorio.listFiles();
-	    for (File file : fList) {
-	    	if(!file.getName().startsWith("$")){
-		    	//System.out.println("Name" + file.getName());
-	    		String printName;
-	        	if(chckbxmntmMostrarRutaCompleta.isSelected())
-	        		printName = file.getAbsolutePath();
-	        	else
-	        		printName = file.getName();
-	        	
-		        if (file.isFile()) {
-		        	if(printName.endsWith(".cfa")){
-		        		contadorCFA += 1;
-		        	}else if(printName.endsWith(".pek")){
-		        		contadorPEK += 1;
-		        	}else if(printName.startsWith("Rendered - ") && printName.endsWith(".AVI")){
-		        		contadorAVI += 1;
-		        	}
-		        	if(printName.endsWith(".cfa") || printName.endsWith(".pek") || (printName.startsWith("Rendered - ") && printName.endsWith(".AVI"))){
-		        		listaArchivos.add(file);
-		        		txAreaLog.append("\t"+printName+"\n");
-		        	}
+	    if(directorio.getName() != "RECYCLER"){
+		    System.out.println(directoryName);
+		    File[] fList = directorio.listFiles();
+		    for (File file : fList) {
+		    	if(!file.getName().startsWith("$")){
+			    	//System.out.println("Name" + file.getName());
+		    		String printName;
+		        	if(chckbxmntmMostrarRutaCompleta.isSelected())
+		        		printName = file.getAbsolutePath();
+		        	else
+		        		printName = file.getName();
 		        	
-		        }else if (file.isDirectory()) {
-		        	if(printName.endsWith(".PRV")){
-		        		//System.out.println(printName);
-		        		txAreaLog.append(printName+"\n");
-		        	}
-		        	
-		        	escanearArchivos(file.getAbsolutePath());
+			        if (file.isFile()) {
+			        	if(printName.endsWith(".cfa")){
+			        		contadorCFA += 1;
+			        	}else if(printName.endsWith(".pek")){
+			        		contadorPEK += 1;
+			        	}else if(printName.startsWith("Rendered - ") && printName.endsWith(".AVI")){
+			        		contadorAVI += 1;
+			        	}
+			        	if(printName.endsWith(".cfa") || printName.endsWith(".pek") || (printName.startsWith("Rendered - ") && printName.endsWith(".AVI"))){
+			        		listaArchivos.add(file);
+			        		txAreaLog.append("\t"+printName+"\n");
+			        	}
+			        	
+			        }else if (file.isDirectory()) {
+			        	if(printName.endsWith(".PRV")){
+			        		//System.out.println(printName);
+			        		txAreaLog.append(printName+"\n");
+			        	}
+			        	escanearArchivos(file.getAbsolutePath());
+			        }
 		        }
-	        }
-	    }
+		    } // fin for
+	    }	// fin if recycler
 	}
 	
 	private void rellenaListaArchivos(){
@@ -250,11 +251,21 @@ public class VentanaPrincipal extends JFrame {
 		
 		if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
 			txPathSeleccionado.setText(jf.getSelectedFile().getAbsolutePath());
-			btLimpiar.setFont(new Font("Tahoma", Font.BOLD, 11));
-			btLimpiar.setEnabled(true);
-			btLimpiar.setForeground(Color.BLACK);
-			btLimpiar.grabFocus();
+			btEjecutar.setFont(new Font("Tahoma", Font.BOLD, 11));
+			btEjecutar.setEnabled(true);
+			btEjecutar.setForeground(Color.BLACK);
+			btEjecutar.grabFocus();
 		}
+	}
+	
+	
+	private void ejecutarPrograma(){
+		txAreaLog.setText("");
+		escanearArchivos(txPathSeleccionado.getText());
+		printStats();
+	}
+	private void printStats(){
+		System.out.println();
 	}
 	
 	private JScrollPane getScrollPane() {
@@ -322,10 +333,6 @@ public class VentanaPrincipal extends JFrame {
 			});
 		}
 		return mntmEjecutar;
-	}
-	
-	private void ejecutarPrograma(){
-		escanearArchivos(txPathSeleccionado.getText());
 	}
 	
 	private JSeparator getSeparator() {
