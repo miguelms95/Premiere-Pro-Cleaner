@@ -31,6 +31,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JSeparator;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -63,11 +65,11 @@ public class VentanaPrincipal extends JFrame {
 	private JMenu mnAyuda;
 	private JMenuItem mntmSeleccionarDirectorio;
 	private JMenuItem mntmEjecutar;
-	private JCheckBoxMenuItem chckbxmntmMostrarRutaCompleta;
 	private JSeparator separator;
-	private JSeparator separator_1;
 	private JMenuItem mntmSalir;
 	private JMenuItem mntmAcercaDe;
+	private JMenu mnOpciones;
+	private JCheckBoxMenuItem chckbxmntmMostrarRutaCompleta;
 	
 	/**
 	 * Launch the application.
@@ -142,16 +144,7 @@ public class VentanaPrincipal extends JFrame {
 			btSeleccionar = new JButton("Seleccionar directorio ");
 			btSeleccionar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					JFileChooser jf = new JFileChooser();
-					jf.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-					
-					if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
-						txPathSeleccionado.setText(jf.getSelectedFile().getAbsolutePath());
-						btLimpiar.setFont(new Font("Tahoma", Font.BOLD, 11));
-						btLimpiar.setEnabled(true);
-						btLimpiar.setForeground(Color.BLACK);
-						btLimpiar.grabFocus();
-					}
+					seleccionarDirectorio();
 				}
 			});
 		}
@@ -211,24 +204,31 @@ public class VentanaPrincipal extends JFrame {
 	    for (File file : fList) {
 	    	if(!file.getName().startsWith("$")){
 		    	//System.out.println("Name" + file.getName());
+	    		String printName;
+	        	if(chckbxmntmMostrarRutaCompleta.isSelected())
+	        		printName = file.getAbsolutePath();
+	        	else
+	        		printName = file.getName();
+	        	
 		        if (file.isFile()) {
-		        	if(file.getName().endsWith(".cfa")){
+		        	if(printName.endsWith(".cfa")){
 		        		contadorCFA += 1;
-		        	}else if(file.getName().endsWith(".pek")){
+		        	}else if(printName.endsWith(".pek")){
 		        		contadorPEK += 1;
-		        	}else if(file.getName().startsWith("Rendered - ") && file.getName().endsWith(".AVI")){
+		        	}else if(printName.startsWith("Rendered - ") && printName.endsWith(".AVI")){
 		        		contadorAVI += 1;
 		        	}
-		        	if(file.getName().endsWith(".cfa") || file.getName().endsWith(".pek") || (file.getName().startsWith("Rendered - ") && file.getName().endsWith(".AVI"))){
+		        	if(printName.endsWith(".cfa") || printName.endsWith(".pek") || (printName.startsWith("Rendered - ") && printName.endsWith(".AVI"))){
 		        		listaArchivos.add(file);
 		        		txAreaLog.append("\t"+file.getName()+"\n");
 		        	}
 		        	
 		        }else if (file.isDirectory()) {
-		        	if(file.getName().endsWith(".PRV")){
-		        		System.out.println(file.getName());
-		        		txAreaLog.append(file.getName()+"\n");
+		        	if(printName.endsWith(".PRV")){
+		        		//System.out.println(printName);
+		        		txAreaLog.append(printName+"\n");
 		        	}
+		        	
 		        	escanearArchivos(file.getAbsolutePath());
 		        }
 	        }
@@ -243,6 +243,20 @@ public class VentanaPrincipal extends JFrame {
 		}
 		txAreaLog.setText(cadena);
 	}
+	
+	private void seleccionarDirectorio(){
+		JFileChooser jf = new JFileChooser();
+		jf.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		
+		if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
+			txPathSeleccionado.setText(jf.getSelectedFile().getAbsolutePath());
+			btLimpiar.setFont(new Font("Tahoma", Font.BOLD, 11));
+			btLimpiar.setEnabled(true);
+			btLimpiar.setForeground(Color.BLACK);
+			btLimpiar.grabFocus();
+		}
+	}
+	
 	private JScrollPane getScrollPane() {
 		if (scrollPane == null) {
 			scrollPane = new JScrollPane();
@@ -265,6 +279,7 @@ public class VentanaPrincipal extends JFrame {
 		if (menuBar == null) {
 			menuBar = new JMenuBar();
 			menuBar.add(getMnAplicacin());
+			menuBar.add(getMnOpciones());
 			menuBar.add(getMnAyuda());
 		}
 		return menuBar;
@@ -275,8 +290,6 @@ public class VentanaPrincipal extends JFrame {
 			mnAplicacin.add(getMntmSeleccionarDirectorio());
 			mnAplicacin.add(getMntmEjecutar());
 			mnAplicacin.add(getSeparator());
-			mnAplicacin.add(getChckbxmntmMostrarRutaCompleta());
-			mnAplicacin.add(getSeparator_1());
 			mnAplicacin.add(getMntmSalir());
 		}
 		return mnAplicacin;
@@ -291,20 +304,24 @@ public class VentanaPrincipal extends JFrame {
 	private JMenuItem getMntmSeleccionarDirectorio() {
 		if (mntmSeleccionarDirectorio == null) {
 			mntmSeleccionarDirectorio = new JMenuItem("Seleccionar directorio...");
+			mntmSeleccionarDirectorio.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					seleccionarDirectorio();
+				}
+			});
 		}
 		return mntmSeleccionarDirectorio;
 	}
 	private JMenuItem getMntmEjecutar() {
 		if (mntmEjecutar == null) {
 			mntmEjecutar = new JMenuItem("Ejecutar");
+			mntmEjecutar.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					escanearArchivos(txPathSeleccionado.getText());
+				}
+			});
 		}
 		return mntmEjecutar;
-	}
-	private JCheckBoxMenuItem getChckbxmntmMostrarRutaCompleta() {
-		if (chckbxmntmMostrarRutaCompleta == null) {
-			chckbxmntmMostrarRutaCompleta = new JCheckBoxMenuItem("Mostrar ruta completa");
-		}
-		return chckbxmntmMostrarRutaCompleta;
 	}
 	private JSeparator getSeparator() {
 		if (separator == null) {
@@ -312,15 +329,14 @@ public class VentanaPrincipal extends JFrame {
 		}
 		return separator;
 	}
-	private JSeparator getSeparator_1() {
-		if (separator_1 == null) {
-			separator_1 = new JSeparator();
-		}
-		return separator_1;
-	}
 	private JMenuItem getMntmSalir() {
 		if (mntmSalir == null) {
 			mntmSalir = new JMenuItem("Salir");
+			mntmSalir.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					System.exit(0);
+				}
+			});
 		}
 		return mntmSalir;
 	}
@@ -329,5 +345,27 @@ public class VentanaPrincipal extends JFrame {
 			mntmAcercaDe = new JMenuItem("Acerca de");
 		}
 		return mntmAcercaDe;
+	}
+	private JMenu getMnOpciones() {
+		if (mnOpciones == null) {
+			mnOpciones = new JMenu("Opciones");
+			mnOpciones.add(getChckbxmntmMostrarRutaCompleta());
+		}
+		return mnOpciones;
+	}
+	private JCheckBoxMenuItem getChckbxmntmMostrarRutaCompleta() {
+		if (chckbxmntmMostrarRutaCompleta == null) {
+			chckbxmntmMostrarRutaCompleta = new JCheckBoxMenuItem("Mostrar ruta completa");
+			chckbxmntmMostrarRutaCompleta.addItemListener(new ItemListener() {
+				public void itemStateChanged(ItemEvent arg0) {
+
+					
+					// ****************************
+						
+				}
+			});
+			chckbxmntmMostrarRutaCompleta.setToolTipText("Mostrar la ruta completa de archivos");
+		}
+		return chckbxmntmMostrarRutaCompleta;
 	}
 }
