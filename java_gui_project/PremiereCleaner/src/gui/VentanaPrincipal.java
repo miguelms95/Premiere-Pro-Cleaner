@@ -8,18 +8,24 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.Font;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JTextArea;
 import java.awt.GridLayout;
 import java.io.File;
 import java.util.ArrayList;
 
 import javax.swing.JTextField;
+import javax.swing.JViewport;
+
 import java.awt.FlowLayout;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import javax.swing.JScrollPane;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -31,17 +37,19 @@ public class VentanaPrincipal extends JFrame {
 	private JPanel panelCentro;
 	private JPanel panelTop;
 	private JLabel lblAdobePremierePro;
-	private JPanel panel;
 	private JPanel panelCentroTop;
 	private JButton btSeleccionar;
 	private JLabel lblSeleccionarDirectorioPara;
-	private JTextArea txAreaLog;
 	private JPanel panel_1;
 	private JPanel panel_2;
 	private JTextField txPathSeleccionado;
 	private JButton btLimpiar;
-
-	private ArrayList<File> listaArchivos;
+	private final String DEFAULT_PATH = "C:\\";
+	
+	VentanaPrincipal vp;
+	private ArrayList<File> listaArchivos = new ArrayList<File>();
+	private JScrollPane scrollPane;
+	private JTextArea txAreaLog;
 	
 	/**
 	 * Launch the application.
@@ -52,6 +60,7 @@ public class VentanaPrincipal extends JFrame {
 				try {
 					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 					VentanaPrincipal frame = new VentanaPrincipal();
+					frame.setLocationRelativeTo(null);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -64,6 +73,7 @@ public class VentanaPrincipal extends JFrame {
 	 * Create the frame.
 	 */
 	public VentanaPrincipal() {
+		vp = this;
 		setTitle("Adobe Premiere Pro Cleaner");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 549, 512);
@@ -71,16 +81,17 @@ public class VentanaPrincipal extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
-		contentPane.add(getPanelCentro(), BorderLayout.CENTER);
 		contentPane.add(getPanelTop(), BorderLayout.NORTH);
+		contentPane.add(getPanelCentro(), BorderLayout.CENTER);
+		
 	}
 
 	private JPanel getPanelCentro() {
 		if (panelCentro == null) {
 			panelCentro = new JPanel();
 			panelCentro.setLayout(new BorderLayout(0, 0));
-			panelCentro.add(getPanel(), BorderLayout.CENTER);
 			panelCentro.add(getPanelCentroTop(), BorderLayout.NORTH);
+			panelCentro.add(getScrollPane(), BorderLayout.CENTER);
 		}
 		return panelCentro;
 	}
@@ -98,14 +109,6 @@ public class VentanaPrincipal extends JFrame {
 		}
 		return lblAdobePremierePro;
 	}
-	private JPanel getPanel() {
-		if (panel == null) {
-			panel = new JPanel();
-			panel.setLayout(new GridLayout(0, 1, 0, 0));
-			panel.add(getTxAreaLog());
-		}
-		return panel;
-	}
 	private JPanel getPanelCentroTop() {
 		if (panelCentroTop == null) {
 			panelCentroTop = new JPanel();
@@ -118,6 +121,20 @@ public class VentanaPrincipal extends JFrame {
 	private JButton getBtSeleccionar() {
 		if (btSeleccionar == null) {
 			btSeleccionar = new JButton("Seleccionar directorio ");
+			btSeleccionar.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					JFileChooser jf = new JFileChooser();
+					jf.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+					
+					if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
+						txPathSeleccionado.setText(jf.getSelectedFile().getAbsolutePath());
+						btLimpiar.setFont(new Font("Tahoma", Font.BOLD, 11));
+						btLimpiar.setEnabled(true);
+						btLimpiar.setForeground(Color.BLACK);
+						btLimpiar.grabFocus();
+					}
+				}
+			});
 		}
 		return btSeleccionar;
 	}
@@ -126,12 +143,6 @@ public class VentanaPrincipal extends JFrame {
 			lblSeleccionarDirectorioPara = new JLabel("Seleccionar directorio para escanear y limpiar:");
 		}
 		return lblSeleccionarDirectorioPara;
-	}
-	private JTextArea getTxAreaLog() {
-		if (txAreaLog == null) {
-			txAreaLog = new JTextArea();
-		}
-		return txAreaLog;
 	}
 	private JPanel getPanel_1() {
 		if (panel_1 == null) {
@@ -153,7 +164,7 @@ public class VentanaPrincipal extends JFrame {
 	private JTextField getTxPathSeleccionado() {
 		if (txPathSeleccionado == null) {
 			txPathSeleccionado = new JTextField();
-			txPathSeleccionado.setText("D:\\Test\\");
+			txPathSeleccionado.setText(DEFAULT_PATH);
 			txPathSeleccionado.setEditable(false);
 			txPathSeleccionado.setColumns(40);
 		}
@@ -164,25 +175,28 @@ public class VentanaPrincipal extends JFrame {
 			btLimpiar = new JButton("Ejecutar");
 			btLimpiar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					escanearArchivos(txPathSeleccionado.getText(), listaArchivos);
-					
+					escanearArchivos(txPathSeleccionado.getText());
+					//System.err.println(txPathSeleccionado.getText());
+					rellenaListaArchivos();
 				}
 			});
-			btLimpiar.setFont(new Font("Tahoma", Font.BOLD, 11));
-			btLimpiar.setForeground(Color.BLACK);
+			btLimpiar.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		}
 		return btLimpiar;
 	}
-	
-	public void escanearArchivos(String directoryName, ArrayList<File> files) {
+
+	public void escanearArchivos(String directoryName) {
 	    File directorio = new File(directoryName);
 
 	    File[] fList = directorio.listFiles();
 	    for (File file : fList) {
-	        if (file.isFile()) {
-	            files.add(file);
-	        } else if (file.isDirectory()) {
-	            escanearArchivos(file.getAbsolutePath(), files);
+	    	if(!file.getName().startsWith("$")){
+		    	//System.out.println("Name" + file.getName());
+		        if (file.isFile()) {
+		        	listaArchivos.add(file);
+		        }else if (file.isDirectory()) {
+		        	escanearArchivos(file.getAbsolutePath());
+		        }
 	        }
 	    }
 	}
@@ -190,8 +204,27 @@ public class VentanaPrincipal extends JFrame {
 	private void rellenaListaArchivos(){
 		String cadena = "";
 		for (File file : listaArchivos) {
-			cadena += file.getAbsolutePath();
+			cadena += file.getAbsolutePath()+"\n";
+			
 		}
 		txAreaLog.setText(cadena);
+	}
+	private JScrollPane getScrollPane() {
+		if (scrollPane == null) {
+			scrollPane = new JScrollPane();
+			scrollPane.setViewportView(getTxAreaLog());
+			scrollPane.add(txAreaLog);
+			scrollPane.setViewportView(txAreaLog);
+			
+			
+		}
+		return scrollPane;
+	}
+	private JTextArea getTxAreaLog() {
+		if (txAreaLog == null) {
+			txAreaLog = new JTextArea();
+			txAreaLog.setEditable(false);
+		}
+		return txAreaLog;
 	}
 }
