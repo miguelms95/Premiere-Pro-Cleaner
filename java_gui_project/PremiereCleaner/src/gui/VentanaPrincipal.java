@@ -51,7 +51,7 @@ public class VentanaPrincipal extends JFrame {
 	private JPanel panel_2;
 	private JTextField txPathSeleccionado;
 	private JButton btEjecutar;
-	private final String DEFAULT_PATH = "D:\\";
+	private final String DEFAULT_PATH = "J:\\";
 	
 	VentanaPrincipal vp;
 	private ArrayList<File> listaArchivos = new ArrayList<File>();
@@ -199,11 +199,21 @@ public class VentanaPrincipal extends JFrame {
 
 	public void escanearArchivos(String directoryName) {
 	    File directorio = new File(directoryName);
-	    if(directorio.getName() != "RECYCLER"){
-		    System.out.println(directoryName);
+    	System.out.println(directorio.getName());
+    	System.out.println("-> "+txPathSeleccionado.getText().toString() + " -- " + directoryName);
+    	System.out.println(directoryName.toString().equals(txPathSeleccionado.getText().toString()));
+    	System.out.println(directorio.isHidden());
+    	System.out.println(directorio.getName().startsWith("$"));
+	    if((directoryName.toString().equals(txPathSeleccionado.getText().toString())) || 
+	    		(!directorio.isHidden() && !directorio.getName().startsWith("$"))){
+	    	
+		    //System.out.println(directoryName);
+	    	if(directorio.getName() == "RECYCLER")
+	    		System.err.println("ENTRO EN CAMPO PELIGROSO. DEBUG.");
 		    File[] fList = directorio.listFiles();
 		    for (File file : fList) {
-		    	if(!file.getName().startsWith("$")){
+
+//		    	if(!file.getName().startsWith("$")){
 			    	//System.out.println("Name" + file.getName());
 		    		String printName;
 		        	if(chckbxmntmMostrarRutaCompleta.isSelected())
@@ -229,9 +239,12 @@ public class VentanaPrincipal extends JFrame {
 			        		//System.out.println(printName);
 			        		txAreaLog.append(printName+"\n");
 			        	}
+//			        	System.out.println(file.getName());
+			        	if(file.getName() == "RECYCLER")
+				    		System.err.println("######## ENTRO EN CAMPO PELIGROSO. DEBUG. ########");
 			        	escanearArchivos(file.getAbsolutePath());
 			        }
-		        }
+//		        } // fin $$
 		    } // fin for
 	    }	// fin if recycler
 	}
