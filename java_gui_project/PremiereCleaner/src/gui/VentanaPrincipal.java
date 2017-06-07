@@ -26,6 +26,11 @@ import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JSeparator;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -53,6 +58,16 @@ public class VentanaPrincipal extends JFrame {
 	private int contadorCFA = 0;
 	private int contadorPEK = 0;
 	private int contadorAVI = 0;
+	private JMenuBar menuBar;
+	private JMenu mnAplicacin;
+	private JMenu mnAyuda;
+	private JMenuItem mntmSeleccionarDirectorio;
+	private JMenuItem mntmEjecutar;
+	private JCheckBoxMenuItem chckbxmntmMostrarRutaCompleta;
+	private JSeparator separator;
+	private JSeparator separator_1;
+	private JMenuItem mntmSalir;
+	private JMenuItem mntmAcercaDe;
 	
 	/**
 	 * Launch the application.
@@ -79,7 +94,8 @@ public class VentanaPrincipal extends JFrame {
 		vp = this;
 		setTitle("Adobe Premiere Pro Cleaner");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 549, 512);
+		setBounds(100, 100, 756, 526);
+		setJMenuBar(getMenuBar_1());
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -205,13 +221,13 @@ public class VentanaPrincipal extends JFrame {
 		        	}
 		        	if(file.getName().endsWith(".cfa") || file.getName().endsWith(".pek") || (file.getName().startsWith("Rendered - ") && file.getName().endsWith(".AVI"))){
 		        		listaArchivos.add(file);
-		        		txAreaLog.append(file.getAbsolutePath());
+		        		txAreaLog.append("\t"+file.getName()+"\n");
 		        	}
 		        	
 		        }else if (file.isDirectory()) {
 		        	if(file.getName().endsWith(".PRV")){
 		        		System.out.println(file.getName());
-		        		txAreaLog.append(file.getAbsolutePath());
+		        		txAreaLog.append(file.getName()+"\n");
 		        	}
 		        	escanearArchivos(file.getAbsolutePath());
 		        }
@@ -244,5 +260,74 @@ public class VentanaPrincipal extends JFrame {
 			txAreaLog.setEditable(false);
 		}
 		return txAreaLog;
+	}
+	private JMenuBar getMenuBar_1() {
+		if (menuBar == null) {
+			menuBar = new JMenuBar();
+			menuBar.add(getMnAplicacin());
+			menuBar.add(getMnAyuda());
+		}
+		return menuBar;
+	}
+	private JMenu getMnAplicacin() {
+		if (mnAplicacin == null) {
+			mnAplicacin = new JMenu("Aplicaci\u00F3n");
+			mnAplicacin.add(getMntmSeleccionarDirectorio());
+			mnAplicacin.add(getMntmEjecutar());
+			mnAplicacin.add(getSeparator());
+			mnAplicacin.add(getChckbxmntmMostrarRutaCompleta());
+			mnAplicacin.add(getSeparator_1());
+			mnAplicacin.add(getMntmSalir());
+		}
+		return mnAplicacin;
+	}
+	private JMenu getMnAyuda() {
+		if (mnAyuda == null) {
+			mnAyuda = new JMenu("Ayuda");
+			mnAyuda.add(getMntmAcercaDe());
+		}
+		return mnAyuda;
+	}
+	private JMenuItem getMntmSeleccionarDirectorio() {
+		if (mntmSeleccionarDirectorio == null) {
+			mntmSeleccionarDirectorio = new JMenuItem("Seleccionar directorio...");
+		}
+		return mntmSeleccionarDirectorio;
+	}
+	private JMenuItem getMntmEjecutar() {
+		if (mntmEjecutar == null) {
+			mntmEjecutar = new JMenuItem("Ejecutar");
+		}
+		return mntmEjecutar;
+	}
+	private JCheckBoxMenuItem getChckbxmntmMostrarRutaCompleta() {
+		if (chckbxmntmMostrarRutaCompleta == null) {
+			chckbxmntmMostrarRutaCompleta = new JCheckBoxMenuItem("Mostrar ruta completa");
+		}
+		return chckbxmntmMostrarRutaCompleta;
+	}
+	private JSeparator getSeparator() {
+		if (separator == null) {
+			separator = new JSeparator();
+		}
+		return separator;
+	}
+	private JSeparator getSeparator_1() {
+		if (separator_1 == null) {
+			separator_1 = new JSeparator();
+		}
+		return separator_1;
+	}
+	private JMenuItem getMntmSalir() {
+		if (mntmSalir == null) {
+			mntmSalir = new JMenuItem("Salir");
+		}
+		return mntmSalir;
+	}
+	private JMenuItem getMntmAcercaDe() {
+		if (mntmAcercaDe == null) {
+			mntmAcercaDe = new JMenuItem("Acerca de");
+		}
+		return mntmAcercaDe;
 	}
 }
