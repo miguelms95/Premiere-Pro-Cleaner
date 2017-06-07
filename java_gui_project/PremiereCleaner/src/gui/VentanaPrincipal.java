@@ -180,7 +180,7 @@ public class VentanaPrincipal extends JFrame {
 				public void actionPerformed(ActionEvent arg0) {
 					escanearArchivos(txPathSeleccionado.getText());
 					//System.err.println(txPathSeleccionado.getText());
-					rellenaListaArchivos();
+					//rellenaListaArchivos();
 				}
 			});
 			btLimpiar.setFont(new Font("Tahoma", Font.PLAIN, 11));
@@ -198,16 +198,21 @@ public class VentanaPrincipal extends JFrame {
 		        if (file.isFile()) {
 		        	if(file.getName().endsWith(".cfa")){
 		        		contadorCFA += 1;
-		        		listaArchivos.add(file);
 		        	}else if(file.getName().endsWith(".pek")){
 		        		contadorPEK += 1;
-		        		listaArchivos.add(file);
 		        	}else if(file.getName().startsWith("Rendered - ") && file.getName().endsWith(".AVI")){
 		        		contadorAVI += 1;
+		        	}
+		        	if(file.getName().endsWith(".cfa") || file.getName().endsWith(".pek") || (file.getName().startsWith("Rendered - ") && file.getName().endsWith(".AVI"))){
 		        		listaArchivos.add(file);
+		        		txAreaLog.append(file.getAbsolutePath());
 		        	}
 		        	
 		        }else if (file.isDirectory()) {
+		        	if(file.getName().endsWith(".PRV")){
+		        		System.out.println(file.getName());
+		        		txAreaLog.append(file.getAbsolutePath());
+		        	}
 		        	escanearArchivos(file.getAbsolutePath());
 		        }
 	        }
