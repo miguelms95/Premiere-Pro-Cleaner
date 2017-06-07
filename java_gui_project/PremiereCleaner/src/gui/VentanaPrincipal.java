@@ -35,6 +35,7 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JSeparator;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
+import javax.swing.JProgressBar;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -58,12 +59,14 @@ public class VentanaPrincipal extends JFrame {
 	VentanaPrincipal vp;
 	private ArrayList<File> listaArchivos = new ArrayList<File>();
 	private ArrayList<File> listaNOEliminados = new ArrayList<File>();
+	private ArrayList<File> listaDirectoriosPRV = new ArrayList<File>();
 	
 	private JScrollPane scrollPane;
 	private JTextArea txAreaLog;
 	private int contadorCFA = 0;
 	private int contadorPEK = 0;
 	private int contadorAVI = 0;
+	private int contadorDirectoriosPRV = 0;
 	private int contadorNoEliminados = 0;
 	private int tamCFA = 0;	// contador para calcular tama�os totales
 	private int tamPEK = 0;
@@ -80,6 +83,7 @@ public class VentanaPrincipal extends JFrame {
 	private JMenu mnOpciones;
 	private JCheckBoxMenuItem chckbxmntmMostrarRutaCompleta;
 	private JButton btnSoloEscanear;
+	private JProgressBar progressBar;
 	
 	/**
 	 * Launch the application.
@@ -114,6 +118,7 @@ public class VentanaPrincipal extends JFrame {
 		setContentPane(contentPane);
 		contentPane.add(getPanelTop(), BorderLayout.NORTH);
 		contentPane.add(getPanelCentro(), BorderLayout.CENTER);
+		contentPane.add(getProgressBar(), BorderLayout.SOUTH);
 		
 	}
 
@@ -198,8 +203,7 @@ public class VentanaPrincipal extends JFrame {
 			btEjecutar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					ejecutarPrograma();
-					//System.err.println(txPathSeleccionado.getText());
-					//rellenaListaArchivos();
+					eliminarArchivos();
 				}
 			});
 			btEjecutar.setFont(new Font("Tahoma", Font.PLAIN, 13));
@@ -209,11 +213,12 @@ public class VentanaPrincipal extends JFrame {
 
 	public void escanearArchivos(String directoryName) {
 	    File directorio = new File(directoryName);
+	    
 //    	System.out.println(directorio.getName());
 	    if((directoryName.toString().equals(txPathSeleccionado.getText().toString())) || 
 	    		(!directorio.isHidden() && !directorio.getName().startsWith("$"))){
 	    	
-	    	System.out.println("-> "+txPathSeleccionado.getText().toString() + " -- " + directoryName);
+//	    	System.out.println("-> "+txPathSeleccionado.getText().toString() + " -- " + directoryName);
 //	    	System.out.println(directoryName.toString().equals(txPathSeleccionado.getText().toString()));
 //	    	System.out.println(directorio.isHidden());
 //	    	System.out.println(directorio.getName().startsWith("$"));
@@ -240,6 +245,7 @@ public class VentanaPrincipal extends JFrame {
 		        		tamAVI += file.length();
 		        	}
 		        	if(printName.endsWith(".cfa") || printName.endsWith(".pek") || (printName.startsWith("Rendered - ") && printName.endsWith(".AVI"))){
+		        		progressBar.setValue(progressBar.getValue()+1);
 		        		listaArchivos.add(file);
 		        		txAreaLog.append("   "+printName+" - "+file.length()/1000000.0+" MB\n");
 		        	}
@@ -250,6 +256,8 @@ public class VentanaPrincipal extends JFrame {
 		        			txAreaLog.append(""+printName+"\n");
 		        		else
 		        			txAreaLog.append("\n"+printName+"\n");
+		        		listaDirectoriosPRV.add(file);
+		        		contadorDirectoriosPRV += 1;
 		        	}
 		        	if(file.getName() == "RECYCLER")
 			    		System.err.println("######## ENTRO EN CAMPO PELIGROSO. DEBUG. ########");
@@ -259,12 +267,23 @@ public class VentanaPrincipal extends JFrame {
 	    }	// fin if recycler
 	}
 	
+	/**
+	 * M�todo que elimina TODOS los archivos encontrados
+	 */
 	private void eliminarArchivos(){
+		int contadorEliminados = 0;
 		for (File file : listaArchivos) {
 			if(!file.delete()){
 				listaNOEliminados.add(file);
 				contadorNoEliminados += 1;
-			}
+			}else
+				contadorEliminados += 1;
+		}
+		for (File file : listaDirectoriosPRV) {
+			file.delete();
+		}
+		if(contadorEliminados > 0){
+			JOptionPane.showMessageDialog(vp, "Se han eliminado " + contadorEliminados + " archivos", "Limpieza finalizada", JOptionPane.INFORMATION_MESSAGE);
 		}
 		if(contadorNoEliminados > 0){
 			JOptionPane.showMessageDialog(vp, "No se han eliminado " + contadorNoEliminados + " archivos", "�Atenci�n!", JOptionPane.WARNING_MESSAGE);
@@ -276,6 +295,7 @@ public class VentanaPrincipal extends JFrame {
 					txAreaLog.append(file.getName() + "\n");
 			}
 		}
+		resetData();
 	}
 	
 	private void seleccionarDirectorio(){
@@ -297,7 +317,8 @@ public class VentanaPrincipal extends JFrame {
 		if(f.exists()){
 			txAreaLog.setText("");
 			escanearArchivos(txPathSeleccionado.getText());
-			printStats("Encontrado");
+			progressBar.setValue(progressBar.getMaximum());
+			printStats("ENCONTRADOS");
 		}else{
 			JOptionPane.showMessageDialog(vp, "�El directorio/archivo seleccionado: < "+txPathSeleccionado.getText()+" >  no existe!", "Error, no te inventes la ruta ;)", JOptionPane.ERROR_MESSAGE);
 			btSeleccionar.grabFocus();
@@ -307,13 +328,15 @@ public class VentanaPrincipal extends JFrame {
 	private void printStats(String accion){
 		int tamTotal = tamAVI + tamPEK +tamCFA;
 		
-		System.out.println("#### RESUMEN ARCHIVOS "+accion+" ###");
-		System.out.println(contadorAVI + " archivos AVI - " + tamAVI + " Bytes = " + tamAVI/1000000000.0 + " GB");
-		System.out.println(contadorPEK + " archivos PEK - " + tamPEK + " Bytes = " + tamPEK/1000000000.0 + " GB");
-		System.out.println(contadorCFA + " archivos CFA - " + tamCFA + " Bytes = " + tamCFA/1000000000.0 + " GB");
-		System.out.println("Espacio total: " + tamTotal + " Bytes = " + tamTotal/1000000000.0 + " GB");
+//		System.out.println("#### RESUMEN ARCHIVOS "+accion+" ###");
+//		System.out.println(contadorDirectoriosPRV + " directorios temporales encontrados");
+//		System.out.println(contadorAVI + " archivos AVI - " + tamAVI + " Bytes = " + tamAVI/1000000000.0 + " GB");
+//		System.out.println(contadorPEK + " archivos PEK - " + tamPEK + " Bytes = " + tamPEK/1000000000.0 + " GB");
+//		System.out.println(contadorCFA + " archivos CFA - " + tamCFA + " Bytes = " + tamCFA/1000000000.0 + " GB");
+//		System.out.println("Espacio total: " + tamTotal + " Bytes = " + tamTotal/1000000000.0 + " GB");
 		
 		txAreaLog.append("\n###### RESUMEN ARCHIVOS "+accion+" ######\n");
+		txAreaLog.append(contadorDirectoriosPRV + " directorios temporales encontrados\n");
 		txAreaLog.append(contadorAVI + " archivos AVI - " + tamAVI + " Bytes = " + tamAVI/1000000000.0 + " GB\n");
 		txAreaLog.append(contadorPEK + " archivos PEK - " + tamPEK + " Bytes = " + tamPEK/1000000000.0 + " GB\n");
 		txAreaLog.append(contadorCFA + " archivos CFA - " + tamCFA + " Bytes = " + tamCFA/1000000000.0 + " GB\n\n");
@@ -447,5 +470,30 @@ public class VentanaPrincipal extends JFrame {
 			});
 		}
 		return btnSoloEscanear;
+	}
+	private JProgressBar getProgressBar() {
+		if (progressBar == null) {
+			progressBar = new JProgressBar();
+			progressBar.setForeground(new Color(30, 144, 255));
+			progressBar.setStringPainted(true);
+		}
+		return progressBar;
+	}
+
+	private void resetData(){
+		listaArchivos = new ArrayList<File>();
+		listaNOEliminados = new ArrayList<File>();
+		listaDirectoriosPRV = new ArrayList<File>();
+		
+		contadorCFA = 0;
+		contadorPEK = 0;
+		contadorAVI = 0;
+		contadorDirectoriosPRV = 0;
+		contadorNoEliminados = 0;
+		tamCFA = 0;	
+		tamPEK = 0;
+		tamAVI = 0;
+		
+		
 	}
 }
