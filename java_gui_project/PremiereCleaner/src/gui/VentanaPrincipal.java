@@ -16,6 +16,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JTextArea;
 import java.awt.GridLayout;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.util.ArrayList;
 
 import javax.swing.JTextField;
@@ -55,11 +57,18 @@ public class VentanaPrincipal extends JFrame {
 	
 	VentanaPrincipal vp;
 	private ArrayList<File> listaArchivos = new ArrayList<File>();
+	private ArrayList<File> listaNOEliminados = new ArrayList<File>();
+	
 	private JScrollPane scrollPane;
 	private JTextArea txAreaLog;
 	private int contadorCFA = 0;
 	private int contadorPEK = 0;
 	private int contadorAVI = 0;
+	private int contadorNoEliminados = 0;
+	private int tamCFA = 0;	// contador para calcular tama�os totales
+	private int tamPEK = 0;
+	private int tamAVI = 0;
+	
 	private JMenuBar menuBar;
 	private JMenu mnAplicacin;
 	private JMenu mnAyuda;
@@ -70,6 +79,7 @@ public class VentanaPrincipal extends JFrame {
 	private JMenuItem mntmAcercaDe;
 	private JMenu mnOpciones;
 	private JCheckBoxMenuItem chckbxmntmMostrarRutaCompleta;
+	private JButton btnSoloEscanear;
 	
 	/**
 	 * Launch the application.
@@ -94,9 +104,9 @@ public class VentanaPrincipal extends JFrame {
 	 */
 	public VentanaPrincipal() {
 		vp = this;
-		setTitle("Adobe Premiere Pro Cleaner");
+		setTitle("Premiere Pro Cleaner");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 756, 526);
+		setBounds(100, 100, 783, 525);
 		setJMenuBar(getMenuBar_1());
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -125,7 +135,7 @@ public class VentanaPrincipal extends JFrame {
 	}
 	private JLabel getLblAdobePremierePro() {
 		if (lblAdobePremierePro == null) {
-			lblAdobePremierePro = new JLabel("Adobe Premiere Pro Cleaner");
+			lblAdobePremierePro = new JLabel("Premiere Pro Cleaner");
 			lblAdobePremierePro.setFont(new Font("Tahoma", Font.BOLD, 15));
 		}
 		return lblAdobePremierePro;
@@ -170,6 +180,7 @@ public class VentanaPrincipal extends JFrame {
 			FlowLayout flowLayout = (FlowLayout) panel_2.getLayout();
 			panel_2.add(getTxPathSeleccionado());
 			panel_2.add(getBtEjecutar());
+			panel_2.add(getBtnSoloEscanear());
 		}
 		return panel_2;
 	}
@@ -177,14 +188,13 @@ public class VentanaPrincipal extends JFrame {
 		if (txPathSeleccionado == null) {
 			txPathSeleccionado = new JTextField();
 			txPathSeleccionado.setText(DEFAULT_PATH);
-			txPathSeleccionado.setEditable(false);
-			txPathSeleccionado.setColumns(40);
+			txPathSeleccionado.setColumns(30);
 		}
 		return txPathSeleccionado;
 	}
 	private JButton getBtEjecutar() {
 		if (btEjecutar == null) {
-			btEjecutar = new JButton("Ejecutar");
+			btEjecutar = new JButton("Escanear y limpiar");
 			btEjecutar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					ejecutarPrograma();
@@ -192,70 +202,80 @@ public class VentanaPrincipal extends JFrame {
 					//rellenaListaArchivos();
 				}
 			});
-			btEjecutar.setFont(new Font("Tahoma", Font.PLAIN, 11));
+			btEjecutar.setFont(new Font("Tahoma", Font.PLAIN, 13));
 		}
 		return btEjecutar;
 	}
 
 	public void escanearArchivos(String directoryName) {
 	    File directorio = new File(directoryName);
-    	System.out.println(directorio.getName());
-    	System.out.println("-> "+txPathSeleccionado.getText().toString() + " -- " + directoryName);
-    	System.out.println(directoryName.toString().equals(txPathSeleccionado.getText().toString()));
-    	System.out.println(directorio.isHidden());
-    	System.out.println(directorio.getName().startsWith("$"));
+//    	System.out.println(directorio.getName());
 	    if((directoryName.toString().equals(txPathSeleccionado.getText().toString())) || 
 	    		(!directorio.isHidden() && !directorio.getName().startsWith("$"))){
 	    	
-		    //System.out.println(directoryName);
+	    	System.out.println("-> "+txPathSeleccionado.getText().toString() + " -- " + directoryName);
+//	    	System.out.println(directoryName.toString().equals(txPathSeleccionado.getText().toString()));
+//	    	System.out.println(directorio.isHidden());
+//	    	System.out.println(directorio.getName().startsWith("$"));
+	    	
 	    	if(directorio.getName() == "RECYCLER")
 	    		System.err.println("ENTRO EN CAMPO PELIGROSO. DEBUG.");
 		    File[] fList = directorio.listFiles();
 		    for (File file : fList) {
-
-//		    	if(!file.getName().startsWith("$")){
-			    	//System.out.println("Name" + file.getName());
-		    		String printName;
-		        	if(chckbxmntmMostrarRutaCompleta.isSelected())
-		        		printName = file.getAbsolutePath();
-		        	else
-		        		printName = file.getName();
+	    		String printName;
+	        	if(chckbxmntmMostrarRutaCompleta.isSelected())
+	        		printName = file.getAbsolutePath();
+	        	else
+	        		printName = file.getName();
+	        	
+		        if (file.isFile()) {
+		        	if(printName.endsWith(".cfa")){
+		        		contadorCFA += 1;
+		        		tamCFA += file.length();
+		        	}else if(printName.endsWith(".pek")){
+		        		contadorPEK += 1;
+		        		tamPEK += file.length();
+		        	}else if(printName.startsWith("Rendered - ") && printName.endsWith(".AVI")){
+		        		contadorAVI += 1;
+		        		tamAVI += file.length();
+		        	}
+		        	if(printName.endsWith(".cfa") || printName.endsWith(".pek") || (printName.startsWith("Rendered - ") && printName.endsWith(".AVI"))){
+		        		listaArchivos.add(file);
+		        		txAreaLog.append("   "+printName+" - "+file.length()/1000000.0+" MB\n");
+		        	}
 		        	
-			        if (file.isFile()) {
-			        	if(printName.endsWith(".cfa")){
-			        		contadorCFA += 1;
-			        	}else if(printName.endsWith(".pek")){
-			        		contadorPEK += 1;
-			        	}else if(printName.startsWith("Rendered - ") && printName.endsWith(".AVI")){
-			        		contadorAVI += 1;
-			        	}
-			        	if(printName.endsWith(".cfa") || printName.endsWith(".pek") || (printName.startsWith("Rendered - ") && printName.endsWith(".AVI"))){
-			        		listaArchivos.add(file);
-			        		txAreaLog.append("\t"+printName+"\n");
-			        	}
-			        	
-			        }else if (file.isDirectory()) {
-			        	if(printName.endsWith(".PRV")){
-			        		//System.out.println(printName);
-			        		txAreaLog.append(printName+"\n");
-			        	}
-//			        	System.out.println(file.getName());
-			        	if(file.getName() == "RECYCLER")
-				    		System.err.println("######## ENTRO EN CAMPO PELIGROSO. DEBUG. ########");
-			        	escanearArchivos(file.getAbsolutePath());
-			        }
-//		        } // fin $$
+		        }else if (file.isDirectory()) {
+		        	if(printName.endsWith(".PRV")){
+		        		if(txAreaLog.getText().equals(""))
+		        			txAreaLog.append(""+printName+"\n");
+		        		else
+		        			txAreaLog.append("\n"+printName+"\n");
+		        	}
+		        	if(file.getName() == "RECYCLER")
+			    		System.err.println("######## ENTRO EN CAMPO PELIGROSO. DEBUG. ########");
+		        	escanearArchivos(file.getAbsolutePath());
+		        }
 		    } // fin for
 	    }	// fin if recycler
 	}
 	
-	private void rellenaListaArchivos(){
-		String cadena = "";
+	private void eliminarArchivos(){
 		for (File file : listaArchivos) {
-			cadena += file.getAbsolutePath()+"\n";
-			
+			if(!file.delete()){
+				listaNOEliminados.add(file);
+				contadorNoEliminados += 1;
+			}
 		}
-		txAreaLog.setText(cadena);
+		if(contadorNoEliminados > 0){
+			JOptionPane.showMessageDialog(vp, "No se han eliminado " + contadorNoEliminados + " archivos", "�Atenci�n!", JOptionPane.WARNING_MESSAGE);
+			txAreaLog.append("\n *** �Atenci�n! No se han eliminado " + contadorNoEliminados + " archivos ***");
+			for (File file : listaNOEliminados) {
+				if(chckbxmntmMostrarRutaCompleta.isSelected())
+					txAreaLog.append(file.getAbsolutePath() + "\n");
+				else
+					txAreaLog.append(file.getName() + "\n");
+			}
+		}
 	}
 	
 	private void seleccionarDirectorio(){
@@ -273,12 +293,31 @@ public class VentanaPrincipal extends JFrame {
 	
 	
 	private void ejecutarPrograma(){
-		txAreaLog.setText("");
-		escanearArchivos(txPathSeleccionado.getText());
-		printStats();
+		File f = new File(txPathSeleccionado.getText().toString());
+		if(f.exists()){
+			txAreaLog.setText("");
+			escanearArchivos(txPathSeleccionado.getText());
+			printStats("Encontrado");
+		}else{
+			JOptionPane.showMessageDialog(vp, "�El directorio/archivo seleccionado: < "+txPathSeleccionado.getText()+" >  no existe!", "Error, no te inventes la ruta ;)", JOptionPane.ERROR_MESSAGE);
+			btSeleccionar.grabFocus();
+		}
 	}
-	private void printStats(){
-		System.out.println();
+	
+	private void printStats(String accion){
+		int tamTotal = tamAVI + tamPEK +tamCFA;
+		
+		System.out.println("#### RESUMEN ARCHIVOS "+accion+" ###");
+		System.out.println(contadorAVI + " archivos AVI - " + tamAVI + " Bytes = " + tamAVI/1000000000.0 + " GB");
+		System.out.println(contadorPEK + " archivos PEK - " + tamPEK + " Bytes = " + tamPEK/1000000000.0 + " GB");
+		System.out.println(contadorCFA + " archivos CFA - " + tamCFA + " Bytes = " + tamCFA/1000000000.0 + " GB");
+		System.out.println("Espacio total: " + tamTotal + " Bytes = " + tamTotal/1000000000.0 + " GB");
+		
+		txAreaLog.append("\n###### RESUMEN ARCHIVOS "+accion+" ######\n");
+		txAreaLog.append(contadorAVI + " archivos AVI - " + tamAVI + " Bytes = " + tamAVI/1000000000.0 + " GB\n");
+		txAreaLog.append(contadorPEK + " archivos PEK - " + tamPEK + " Bytes = " + tamPEK/1000000000.0 + " GB\n");
+		txAreaLog.append(contadorCFA + " archivos CFA - " + tamCFA + " Bytes = " + tamCFA/1000000000.0 + " GB\n\n");
+		txAreaLog.append("Espacio total: " + tamTotal + " Bytes = " + tamTotal/1000000000.0 + " GB\n");
 	}
 	
 	private JScrollPane getScrollPane() {
@@ -368,6 +407,11 @@ public class VentanaPrincipal extends JFrame {
 	private JMenuItem getMntmAcercaDe() {
 		if (mntmAcercaDe == null) {
 			mntmAcercaDe = new JMenuItem("Acerca de");
+			mntmAcercaDe.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					JOptionPane.showMessageDialog(vp, "Premiere Pro Cleaner v1.0\nSoftware desarrollado por Miguel Mart�nez Serrano 2017\nwww.miguelms.es","Informaci�n del programa",JOptionPane.INFORMATION_MESSAGE);
+				}
+			});
 		}
 		return mntmAcercaDe;
 	}
@@ -385,12 +429,23 @@ public class VentanaPrincipal extends JFrame {
 				public void itemStateChanged(ItemEvent arg0) {
 
 					txAreaLog.setText("");
-					escanearArchivos(txPathSeleccionado.getText());
+					ejecutarPrograma();
 						
 				}
 			});
 			chckbxmntmMostrarRutaCompleta.setToolTipText("Mostrar la ruta completa de archivos");
 		}
 		return chckbxmntmMostrarRutaCompleta;
+	}
+	private JButton getBtnSoloEscanear() {
+		if (btnSoloEscanear == null) {
+			btnSoloEscanear = new JButton("Solo escanear");
+			btnSoloEscanear.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					ejecutarPrograma();
+				}
+			});
+		}
+		return btnSoloEscanear;
 	}
 }
