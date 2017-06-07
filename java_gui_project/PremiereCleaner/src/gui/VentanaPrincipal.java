@@ -187,7 +187,7 @@ public class VentanaPrincipal extends JFrame {
 			btLimpiar = new JButton("Ejecutar");
 			btLimpiar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					escanearArchivos(txPathSeleccionado.getText());
+					ejecutarPrograma();
 					//System.err.println(txPathSeleccionado.getText());
 					//rellenaListaArchivos();
 				}
@@ -220,7 +220,7 @@ public class VentanaPrincipal extends JFrame {
 		        	}
 		        	if(printName.endsWith(".cfa") || printName.endsWith(".pek") || (printName.startsWith("Rendered - ") && printName.endsWith(".AVI"))){
 		        		listaArchivos.add(file);
-		        		txAreaLog.append("\t"+file.getName()+"\n");
+		        		txAreaLog.append("\t"+printName+"\n");
 		        	}
 		        	
 		        }else if (file.isDirectory()) {
@@ -317,12 +317,17 @@ public class VentanaPrincipal extends JFrame {
 			mntmEjecutar = new JMenuItem("Ejecutar");
 			mntmEjecutar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					escanearArchivos(txPathSeleccionado.getText());
+					ejecutarPrograma();
 				}
 			});
 		}
 		return mntmEjecutar;
 	}
+	
+	private void ejecutarPrograma(){
+		escanearArchivos(txPathSeleccionado.getText());
+	}
+	
 	private JSeparator getSeparator() {
 		if (separator == null) {
 			separator = new JSeparator();
@@ -359,8 +364,8 @@ public class VentanaPrincipal extends JFrame {
 			chckbxmntmMostrarRutaCompleta.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent arg0) {
 
-					
-					// ****************************
+					txAreaLog.setText("");
+					escanearArchivos(txPathSeleccionado.getText());
 						
 				}
 			});
