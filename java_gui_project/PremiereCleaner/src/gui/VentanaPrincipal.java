@@ -44,12 +44,15 @@ public class VentanaPrincipal extends JFrame {
 	private JPanel panel_2;
 	private JTextField txPathSeleccionado;
 	private JButton btLimpiar;
-	private final String DEFAULT_PATH = "C:\\";
+	private final String DEFAULT_PATH = "D:\\";
 	
 	VentanaPrincipal vp;
 	private ArrayList<File> listaArchivos = new ArrayList<File>();
 	private JScrollPane scrollPane;
 	private JTextArea txAreaLog;
+	private int contadorCFA = 0;
+	private int contadorPEK = 0;
+	private int contadorAVI = 0;
 	
 	/**
 	 * Launch the application.
@@ -193,7 +196,17 @@ public class VentanaPrincipal extends JFrame {
 	    	if(!file.getName().startsWith("$")){
 		    	//System.out.println("Name" + file.getName());
 		        if (file.isFile()) {
-		        	listaArchivos.add(file);
+		        	if(file.getName().endsWith(".cfa")){
+		        		contadorCFA += 1;
+		        		listaArchivos.add(file);
+		        	}else if(file.getName().endsWith(".pek")){
+		        		contadorPEK += 1;
+		        		listaArchivos.add(file);
+		        	}else if(file.getName().startsWith("Rendered - ") && file.getName().endsWith(".AVI")){
+		        		contadorAVI += 1;
+		        		listaArchivos.add(file);
+		        	}
+		        	
 		        }else if (file.isDirectory()) {
 		        	escanearArchivos(file.getAbsolutePath());
 		        }
