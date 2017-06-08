@@ -88,8 +88,9 @@ public class VentanaPrincipal extends JFrame {
 	private JButton btnSoloEscanear;
 	private JProgressBar progressBar;
 	private JPanel panel;
-	private JLabel lbEjecutando;
+	private JLabel lbTiempoEjecucion;
 	private JPanel panel_3;
+	private JMenuItem mntmReiniciar;
 	
 	/**
 	 * Launch the application.
@@ -242,8 +243,10 @@ public class VentanaPrincipal extends JFrame {
 	        		printName = file.getAbsolutePath();
 	        	else
 	        		printName = file.getName();
-	        	if(progressBar.getValue() < 99)
+	        	if(progressBar.getValue() < 99){
 	        		progressBar.setValue(progressBar.getValue()+1);
+	        		progressBar.repaint();
+	        		}
 		        if (file.isFile()) {
 		        	if(printName.endsWith(".cfa")){
 		        		contadorCFA += 1;
@@ -329,15 +332,18 @@ public class VentanaPrincipal extends JFrame {
 		File f = new File(txPathSeleccionado.getText().toString());
 		if(f.exists()){
 			txAreaLog.setText("");
-			lbEjecutando.setText("Ejecutando...");
+			lbTiempoEjecucion.setText("");
 			progressBar.setValue(0);
 			progressBar.repaint();
 			vp.repaint();
-			System.out.println(new File(txPathSeleccionado.getText()).list().length);
+			//System.out.println(new File(txPathSeleccionado.getText()).list().length);
+			long t1 = System.currentTimeMillis();
 			escanearArchivos(txPathSeleccionado.getText());
+			long t2 = System.currentTimeMillis();
 			progressBar.setValue(progressBar.getMaximum());
-			lbEjecutando.setText("�Ejecuci�n finalizada!");
+			lbTiempoEjecucion.setText("Tiempo: "+ (t2-t1) + " ms");
 			printStats("ENCONTRADOS");
+			JOptionPane.showMessageDialog(vp, "�Ejecuci�n finalizada!", "Escaneo completo", JOptionPane.INFORMATION_MESSAGE);
 		}else{
 			JOptionPane.showMessageDialog(vp, "�El directorio/archivo seleccionado: < "+txPathSeleccionado.getText()+" >  no existe!", "Error, no te inventes la ruta ;)", JOptionPane.ERROR_MESSAGE);
 			btSeleccionar.grabFocus();
@@ -398,6 +404,7 @@ public class VentanaPrincipal extends JFrame {
 			mnAplicacin = new JMenu("Aplicaci\u00F3n");
 			mnAplicacin.add(getMntmSeleccionarDirectorio());
 			mnAplicacin.add(getMntmEjecutar());
+			mnAplicacin.add(getMntmReiniciar());
 			mnAplicacin.add(getSeparator());
 			mnAplicacin.add(getMntmSalir());
 		}
@@ -543,17 +550,31 @@ public class VentanaPrincipal extends JFrame {
 		}
 		return panel;
 	}
-	private JLabel getLbEjecutando() {
-		if (lbEjecutando == null) {
-			lbEjecutando = new JLabel("");
+	private JLabel getLbTiempoEjecucion() {
+		if (lbTiempoEjecucion == null) {
+			lbTiempoEjecucion = new JLabel("");
 		}
-		return lbEjecutando;
+		return lbTiempoEjecucion;
 	}
 	private JPanel getPanel_3() {
 		if (panel_3 == null) {
 			panel_3 = new JPanel();
-			panel_3.add(getLbEjecutando());
+			panel_3.add(getLbTiempoEjecucion());
 		}
 		return panel_3;
+	}
+	private JMenuItem getMntmReiniciar() {
+		if (mntmReiniciar == null) {
+			mntmReiniciar = new JMenuItem("Reiniciar");
+			mntmReiniciar.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					resetData();
+					progressBar.setValue(0);
+					lbTiempoEjecucion.setText("");
+					txPathSeleccionado.setText(DEFAULT_PATH);
+				}
+			});
+		}
+		return mntmReiniciar;
 	}
 }
