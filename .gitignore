@@ -15,6 +15,7 @@ $RECYCLE.BIN/
 *.msp
 .idea/
 test/
+imgs/
 
 .metadata/
 .recommenders/

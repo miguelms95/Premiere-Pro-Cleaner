@@ -39,6 +39,9 @@ import javax.swing.JProgressBar;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import javax.swing.ImageIcon;
+import java.awt.Toolkit;
+import java.awt.Dimension;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -57,7 +60,8 @@ public class VentanaPrincipal extends JFrame {
 	private JPanel panel_2;
 	private JTextField txPathSeleccionado;
 	private JButton btEjecutar;
-	private final String DEFAULT_PATH = "J:\\";
+	//private final String DEFAULT_PATH = "J:\\";
+	private final String DEFAULT_PATH = "C:\\Users\\";
 	
 	VentanaPrincipal vp;
 	private ArrayList<File> listaArchivos = new ArrayList<File>();
@@ -91,6 +95,7 @@ public class VentanaPrincipal extends JFrame {
 	private JLabel lbTiempoEjecucion;
 	private JPanel panel_3;
 	private JMenuItem mntmReiniciar;
+	private JLabel lbIcono;
 	
 	/**
 	 * Launch the application.
@@ -114,10 +119,12 @@ public class VentanaPrincipal extends JFrame {
 	 * Create the frame.
 	 */
 	public VentanaPrincipal() {
+		setMinimumSize(new Dimension(683, 400));
+		setIconImage(Toolkit.getDefaultToolkit().getImage(VentanaPrincipal.class.getResource("/img/icon.png")));
 		vp = this;
 		setTitle("Premiere Pro Cleaner");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 783, 525);
+		setBounds(100, 100, 713, 559);
 		setJMenuBar(getMenuBar_1());
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -141,6 +148,7 @@ public class VentanaPrincipal extends JFrame {
 	private JPanel getPanelTop() {
 		if (panelTop == null) {
 			panelTop = new JPanel();
+			panelTop.add(getLbIcono());
 			panelTop.add(getLblAdobePremierePro());
 		}
 		return panelTop;
@@ -148,7 +156,7 @@ public class VentanaPrincipal extends JFrame {
 	private JLabel getLblAdobePremierePro() {
 		if (lblAdobePremierePro == null) {
 			lblAdobePremierePro = new JLabel("Premiere Pro Cleaner");
-			lblAdobePremierePro.setFont(new Font("Tahoma", Font.BOLD, 15));
+			lblAdobePremierePro.setFont(new Font("Tahoma", Font.BOLD, 16));
 		}
 		return lblAdobePremierePro;
 	}
@@ -164,6 +172,7 @@ public class VentanaPrincipal extends JFrame {
 	private JButton getBtSeleccionar() {
 		if (btSeleccionar == null) {
 			btSeleccionar = new JButton("Seleccionar directorio");
+			btSeleccionar.setFont(new Font("Tahoma", Font.PLAIN, 13));
 			btSeleccionar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					seleccionarDirectorio();
@@ -175,6 +184,7 @@ public class VentanaPrincipal extends JFrame {
 	private JLabel getLblSeleccionarDirectorioPara() {
 		if (lblSeleccionarDirectorioPara == null) {
 			lblSeleccionarDirectorioPara = new JLabel("Seleccionar directorio para escanear y limpiar:");
+			lblSeleccionarDirectorioPara.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		}
 		return lblSeleccionarDirectorioPara;
 	}
@@ -199,6 +209,7 @@ public class VentanaPrincipal extends JFrame {
 	private JTextField getTxPathSeleccionado() {
 		if (txPathSeleccionado == null) {
 			txPathSeleccionado = new JTextField();
+			txPathSeleccionado.setFont(new Font("Tahoma", Font.PLAIN, 13));
 			txPathSeleccionado.setText(DEFAULT_PATH);
 			txPathSeleccionado.setColumns(30);
 		}
@@ -240,44 +251,50 @@ public class VentanaPrincipal extends JFrame {
 	    	if(directorio.getName() == "RECYCLER")
 	    		System.err.println("ENTRO EN CAMPO PELIGROSO. DEBUG.");
 		    File[] fList = directorio.listFiles();
-		    for (File file : fList) {
-	    		String printName;
-	        	if(chckbxmntmMostrarRutaCompleta.isSelected())
-	        		printName = file.getAbsolutePath();
-	        	else
-	        		printName = file.getName();
-	        	if(progressBar.getValue() < 99){
-	        		progressBar.setValue(progressBar.getValue()+1);
-	        		progressBar.repaint();
-	        		}
-		        if (file.isFile()) {
-		        	if(printName.endsWith(".cfa")){
-		        		contadorCFA += 1;
-		        		tamCFA += file.length();
-		        	}else if(printName.endsWith(".pek")){
-		        		contadorPEK += 1;
-		        		tamPEK += file.length();
-		        	}else if(printName.startsWith("Rendered - ") && printName.endsWith(".AVI")){
-		        		contadorAVI += 1;
-		        		tamAVI += file.length();
-		        	}
-		        	if(printName.endsWith(".cfa") || printName.endsWith(".pek") || (printName.startsWith("Rendered - ") && printName.endsWith(".AVI"))){
-		        		listaArchivos.add(file);
-		        		txAreaLog.append("   "+printName+" - "+file.length()/1000000.0+" MB\n");
-		        	}
-		        	
-		        }else if (file.isDirectory()) {
-		        	if(printName.endsWith(".PRV")){
-		        		if(txAreaLog.getText().equals(""))
-		        			txAreaLog.append(""+printName+"\n");
-		        		else
-		        			txAreaLog.append("\n"+printName+"\n");
-		        		listaDirectoriosPRV.add(file);
-		        		contadorDirectoriosPRV += 1;
-		        	}
-		        	if(file.getName() == "RECYCLER")
-			    		System.err.println("######## ENTRO EN CAMPO PELIGROSO. DEBUG. ########");
-		        	escanearArchivos(file.getAbsolutePath());
+		    
+		    progressBar.setString(directorio.getAbsolutePath());
+		    for (int i=0; fList != null && i<fList.length;i++) {
+		    	File file = fList[i];
+		    	if(!file.isHidden()){
+		    		String printName;
+		        	if(chckbxmntmMostrarRutaCompleta.isSelected())
+		        		printName = file.getAbsolutePath();
+		        	else
+		        		printName = file.getName();
+			        if (file.isFile()) {
+			        	if(printName.endsWith(".cfa")){
+			        		contadorCFA += 1;
+			        		tamCFA += file.length();
+			        	}else if(printName.endsWith(".pek")){
+			        		contadorPEK += 1;
+			        		tamPEK += file.length();
+			        	}else if(printName.startsWith("Rendered - ") && printName.endsWith(".AVI")){
+			        		contadorAVI += 1;
+			        		tamAVI += file.length();
+			        	}
+			        	if(printName.endsWith(".cfa") || printName.endsWith(".pek") || (printName.startsWith("Rendered - ") && printName.endsWith(".AVI"))){
+			        		listaArchivos.add(file);
+			        		txAreaLog.append("   "+printName+" - "+file.length()/1000000.0+" MB\n");
+			        	}
+			        	
+			        }else if (file.isDirectory()) {
+			        	// simulación imperfecta de progreso
+			        	if(progressBar.getValue() < progressBar.getMaximum()-1){
+			        		progressBar.setValue(progressBar.getValue()+1);
+			        		progressBar.repaint();
+			        	}
+			        	if(printName.endsWith(".PRV")){
+			        		if(txAreaLog.getText().equals(""))
+			        			txAreaLog.append(""+printName+"\n");
+			        		else
+			        			txAreaLog.append("\n"+printName+"\n");
+			        		listaDirectoriosPRV.add(file);
+			        		contadorDirectoriosPRV += 1;
+			        	}
+			        	if(file.getName() == "RECYCLER")
+				    		System.err.println("######## ENTRO EN CAMPO PELIGROSO. DEBUG. ########");
+			        	escanearArchivos(file.getAbsolutePath());
+			        }
 		        }
 		    } // fin for
 	    }	// fin if recycler
@@ -344,6 +361,7 @@ public class VentanaPrincipal extends JFrame {
 			escanearArchivos(txPathSeleccionado.getText());
 			long t2 = System.currentTimeMillis();
 			progressBar.setValue(progressBar.getMaximum());
+			progressBar.setString("100%");
 			lbTiempoEjecucion.setText("Tiempo: "+ (t2-t1) + " ms");
 			printStats("ENCONTRADOS");
 			JOptionPane.showMessageDialog(vp, "¡Ejecución finalizada!", "Escaneo completo", JOptionPane.INFORMATION_MESSAGE);
@@ -487,12 +505,13 @@ public class VentanaPrincipal extends JFrame {
 			chckbxmntmMostrarRutaCompleta = new JCheckBoxMenuItem("Mostrar ruta completa");
 			chckbxmntmMostrarRutaCompleta.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent arg0) {
-
-					txAreaLog.setText("");
-					MyThread hiloEjecucion = new MyThread();
-					hiloEjecucion.start();
-//					escanear();
-					resetData();
+					if(txAreaLog.getText().toString().length()>0 && !listaArchivos.isEmpty()){
+						txAreaLog.setText("");
+						MyThread hiloEjecucion = new MyThread();
+						hiloEjecucion.start();
+	//					escanear();
+						resetData();
+					}
 						
 				}
 			});
@@ -503,6 +522,7 @@ public class VentanaPrincipal extends JFrame {
 	private JButton getBtnSoloEscanear() {
 		if (btnSoloEscanear == null) {
 			btnSoloEscanear = new JButton("Solo escanear");
+			btnSoloEscanear.setFont(new Font("Tahoma", Font.PLAIN, 13));
 			btnSoloEscanear.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					
@@ -518,6 +538,7 @@ public class VentanaPrincipal extends JFrame {
 	private JProgressBar getProgressBar() {
 		if (progressBar == null) {
 			progressBar = new JProgressBar();
+			progressBar.setMaximum(1000);
 			progressBar.setForeground(new Color(30, 144, 255));
 			progressBar.setStringPainted(true);
 		}
@@ -592,8 +613,15 @@ public class VentanaPrincipal extends JFrame {
 	public class MyThread extends Thread {
 
 	    public void run(){
-	       System.out.println("Hilo ejecutandose");
+	       //System.out.println("Hilo ejecutandose");
 	       escanear();
 	    }
 	  }
+	private JLabel getLbIcono() {
+		if (lbIcono == null) {
+			lbIcono = new JLabel("");
+			lbIcono.setIcon(new ImageIcon(VentanaPrincipal.class.getResource("/img/logo_small.png")));
+		}
+		return lbIcono;
+	}
 }

@@ -8,3 +8,5 @@ Clean the Premiere Projects before backuping or moving it anywhere deleting unne
 Adobe proyect <b>size before</b> using the cleaner <b>110 GB</b>, and <b>after</b>: <b>45 GB</b>
 
 <img src="./python_app/adobe-premiere-pro-cleaner.PNG">
+
+<small>broom icon by <a href="http://www.flaticon.com/authors/nikita-golubev">nikita golubev</a>, and premiere pro logo by adobe.</small>
