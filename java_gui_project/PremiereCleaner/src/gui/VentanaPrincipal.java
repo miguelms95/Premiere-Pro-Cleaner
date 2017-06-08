@@ -294,7 +294,7 @@ public class VentanaPrincipal extends JFrame {
 		}
 		if(contadorEliminados > 0){
 			JOptionPane.showMessageDialog(vp, "Se han eliminado " + contadorEliminados + " archivos", "Limpieza finalizada", JOptionPane.INFORMATION_MESSAGE);
-			txAreaLog.append("## LIMPIEZA FINALIZADA ##\nSe han eliminado " + contadorEliminados + " archivos.");
+			//txAreaLog.append("## LIMPIEZA FINALIZADA ##\nSe han eliminado " + contadorEliminados + " archivos.");
 		}
 		if(contadorNoEliminados > 0){
 			JOptionPane.showMessageDialog(vp, "No se han eliminado " + contadorNoEliminados + " archivos", "�Atenci�n!", JOptionPane.WARNING_MESSAGE);
@@ -331,6 +331,8 @@ public class VentanaPrincipal extends JFrame {
 			txAreaLog.setText("");
 			lbEjecutando.setText("Ejecutando...");
 			progressBar.setValue(0);
+			progressBar.repaint();
+			vp.repaint();
 			System.out.println(new File(txPathSeleccionado.getText()).list().length);
 			escanearArchivos(txPathSeleccionado.getText());
 			progressBar.setValue(progressBar.getMaximum());
