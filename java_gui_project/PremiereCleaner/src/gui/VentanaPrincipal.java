@@ -57,7 +57,6 @@ public class VentanaPrincipal extends JFrame {
 	private JPanel panel_2;
 	private JTextField txPathSeleccionado;
 	private JButton btEjecutar;
-//	private final String DEFAULT_PATH = "D:\\cap17 26092016";
 	private final String DEFAULT_PATH = "J:\\";
 	
 	VentanaPrincipal vp;
@@ -210,7 +209,10 @@ public class VentanaPrincipal extends JFrame {
 			btEjecutar = new JButton("Escanear y limpiar");
 			btEjecutar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					escanear();
+					
+					MyThread myThread = new MyThread();
+					myThread.start();
+					//escanear();
 					eliminarArchivos();
 				}
 			});
@@ -327,9 +329,9 @@ public class VentanaPrincipal extends JFrame {
 	}
 	
 	/**
-	 * 
+	 * Método escanea e imprime resultados.
 	 */
-	private void escanear(){
+	public void escanear(){
 		File f = new File(txPathSeleccionado.getText().toString());
 		if(f.exists()){
 			txAreaLog.setText("");
@@ -369,7 +371,7 @@ public class VentanaPrincipal extends JFrame {
 		txAreaLog.append(contadorDirectoriosPRV + " directorios temporales encontrados\n");
 		txAreaLog.append(contadorAVI + " archivos AVI - " + tamAVI + " Bytes = " + tamAVI/1000000000.0 + " GB\n");
 		txAreaLog.append(contadorPEK + " archivos PEK - " + tamPEK + " Bytes = " + tamPEK/1000000000.0 + " GB\n");
-		txAreaLog.append(contadorCFA + " archivos CFA - " + tamCFA + " Bytes = " + tamCFA/1000000000.0 + " GB\n\n");
+		txAreaLog.append(contadorCFA + " archivos CFA - " + Math.abs(tamCFA) + " Bytes = " + Math.abs(tamCFA/1000000000.0) + " GB\n\n");
 		txAreaLog.append("Espacio total: " + tamTotal + " Bytes = " + tamTotal/1000000000.0 + " GB\n");
 	}
 	
@@ -434,7 +436,10 @@ public class VentanaPrincipal extends JFrame {
 			mntmEjecutar = new JMenuItem("Ejecutar");
 			mntmEjecutar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					escanear();
+					
+					MyThread hiloEjecucion = new MyThread();
+					hiloEjecucion.start();
+					//escanear();
 					resetData();
 				}
 			});
@@ -484,7 +489,9 @@ public class VentanaPrincipal extends JFrame {
 				public void itemStateChanged(ItemEvent arg0) {
 
 					txAreaLog.setText("");
-					escanear();
+					MyThread hiloEjecucion = new MyThread();
+					hiloEjecucion.start();
+//					escanear();
 					resetData();
 						
 				}
@@ -498,7 +505,10 @@ public class VentanaPrincipal extends JFrame {
 			btnSoloEscanear = new JButton("Solo escanear");
 			btnSoloEscanear.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					escanear();
+					
+					MyThread myThread = new MyThread();
+					myThread.start();
+					//escanear();
 					resetData();
 				}
 			});
@@ -578,4 +588,12 @@ public class VentanaPrincipal extends JFrame {
 		}
 		return mntmReiniciar;
 	}
+	
+	public class MyThread extends Thread {
+
+	    public void run(){
+	       System.out.println("Hilo ejecutandose");
+	       escanear();
+	    }
+	  }
 }
