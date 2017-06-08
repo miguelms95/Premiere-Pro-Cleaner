@@ -36,6 +36,9 @@ import javax.swing.JSeparator;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import javax.swing.JProgressBar;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -84,6 +87,9 @@ public class VentanaPrincipal extends JFrame {
 	private JCheckBoxMenuItem chckbxmntmMostrarRutaCompleta;
 	private JButton btnSoloEscanear;
 	private JProgressBar progressBar;
+	private JPanel panel;
+	private JLabel lbEjecutando;
+	private JPanel panel_3;
 	
 	/**
 	 * Launch the application.
@@ -118,7 +124,7 @@ public class VentanaPrincipal extends JFrame {
 		setContentPane(contentPane);
 		contentPane.add(getPanelTop(), BorderLayout.NORTH);
 		contentPane.add(getPanelCentro(), BorderLayout.CENTER);
-		contentPane.add(getProgressBar(), BorderLayout.SOUTH);
+		contentPane.add(getPanel(), BorderLayout.SOUTH);
 		
 	}
 
@@ -156,7 +162,7 @@ public class VentanaPrincipal extends JFrame {
 	}
 	private JButton getBtSeleccionar() {
 		if (btSeleccionar == null) {
-			btSeleccionar = new JButton("Seleccionar directorio ");
+			btSeleccionar = new JButton("Seleccionar directorio");
 			btSeleccionar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					seleccionarDirectorio();
@@ -202,7 +208,7 @@ public class VentanaPrincipal extends JFrame {
 			btEjecutar = new JButton("Escanear y limpiar");
 			btEjecutar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					ejecutarPrograma();
+					escanear();
 					eliminarArchivos();
 				}
 			});
@@ -211,6 +217,10 @@ public class VentanaPrincipal extends JFrame {
 		return btEjecutar;
 	}
 
+	/**
+	 * Escanea y lista los archivos recursivamente a partir del directorio pasado por parametro
+	 * @param directoryName
+	 */
 	public void escanearArchivos(String directoryName) {
 	    File directorio = new File(directoryName);
 	    
@@ -232,7 +242,8 @@ public class VentanaPrincipal extends JFrame {
 	        		printName = file.getAbsolutePath();
 	        	else
 	        		printName = file.getName();
-	        	
+	        	if(progressBar.getValue() < 99)
+	        		progressBar.setValue(progressBar.getValue()+1);
 		        if (file.isFile()) {
 		        	if(printName.endsWith(".cfa")){
 		        		contadorCFA += 1;
@@ -245,7 +256,6 @@ public class VentanaPrincipal extends JFrame {
 		        		tamAVI += file.length();
 		        	}
 		        	if(printName.endsWith(".cfa") || printName.endsWith(".pek") || (printName.startsWith("Rendered - ") && printName.endsWith(".AVI"))){
-		        		progressBar.setValue(progressBar.getValue()+1);
 		        		listaArchivos.add(file);
 		        		txAreaLog.append("   "+printName+" - "+file.length()/1000000.0+" MB\n");
 		        	}
@@ -284,6 +294,7 @@ public class VentanaPrincipal extends JFrame {
 		}
 		if(contadorEliminados > 0){
 			JOptionPane.showMessageDialog(vp, "Se han eliminado " + contadorEliminados + " archivos", "Limpieza finalizada", JOptionPane.INFORMATION_MESSAGE);
+			txAreaLog.append("## LIMPIEZA FINALIZADA ##\nSe han eliminado " + contadorEliminados + " archivos.");
 		}
 		if(contadorNoEliminados > 0){
 			JOptionPane.showMessageDialog(vp, "No se han eliminado " + contadorNoEliminados + " archivos", "�Atenci�n!", JOptionPane.WARNING_MESSAGE);
@@ -311,13 +322,19 @@ public class VentanaPrincipal extends JFrame {
 		}
 	}
 	
-	
-	private void ejecutarPrograma(){
+	/**
+	 * 
+	 */
+	private void escanear(){
 		File f = new File(txPathSeleccionado.getText().toString());
 		if(f.exists()){
 			txAreaLog.setText("");
+			lbEjecutando.setText("Ejecutando...");
+			progressBar.setValue(0);
+			System.out.println(new File(txPathSeleccionado.getText()).list().length);
 			escanearArchivos(txPathSeleccionado.getText());
 			progressBar.setValue(progressBar.getMaximum());
+			lbEjecutando.setText("�Ejecuci�n finalizada!");
 			printStats("ENCONTRADOS");
 		}else{
 			JOptionPane.showMessageDialog(vp, "�El directorio/archivo seleccionado: < "+txPathSeleccionado.getText()+" >  no existe!", "Error, no te inventes la ruta ;)", JOptionPane.ERROR_MESSAGE);
@@ -325,6 +342,10 @@ public class VentanaPrincipal extends JFrame {
 		}
 	}
 	
+	/**
+	 * Imprime estadisticas de la ejecuci�n
+	 * @param accion
+	 */
 	private void printStats(String accion){
 		int tamTotal = tamAVI + tamPEK +tamCFA;
 		
@@ -403,7 +424,8 @@ public class VentanaPrincipal extends JFrame {
 			mntmEjecutar = new JMenuItem("Ejecutar");
 			mntmEjecutar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					ejecutarPrograma();
+					escanear();
+					resetData();
 				}
 			});
 		}
@@ -452,7 +474,8 @@ public class VentanaPrincipal extends JFrame {
 				public void itemStateChanged(ItemEvent arg0) {
 
 					txAreaLog.setText("");
-					ejecutarPrograma();
+					escanear();
+					resetData();
 						
 				}
 			});
@@ -465,7 +488,8 @@ public class VentanaPrincipal extends JFrame {
 			btnSoloEscanear = new JButton("Solo escanear");
 			btnSoloEscanear.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					ejecutarPrograma();
+					escanear();
+					resetData();
 				}
 			});
 		}
@@ -492,8 +516,42 @@ public class VentanaPrincipal extends JFrame {
 		contadorNoEliminados = 0;
 		tamCFA = 0;	
 		tamPEK = 0;
-		tamAVI = 0;
-		
-		
+		tamAVI = 0;		
+	}
+	private JPanel getPanel() {
+		if (panel == null) {
+			panel = new JPanel();
+			GridBagLayout gbl_panel = new GridBagLayout();
+			gbl_panel.columnWidths = new int[]{115, 378, 0};
+			gbl_panel.rowHeights = new int[]{26, 0};
+			gbl_panel.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
+			gbl_panel.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+			panel.setLayout(gbl_panel);
+			GridBagConstraints gbc_panel_3 = new GridBagConstraints();
+			gbc_panel_3.fill = GridBagConstraints.HORIZONTAL;
+			gbc_panel_3.insets = new Insets(0, 0, 0, 5);
+			gbc_panel_3.gridx = 0;
+			gbc_panel_3.gridy = 0;
+			panel.add(getPanel_3(), gbc_panel_3);
+			GridBagConstraints gbc_progressBar = new GridBagConstraints();
+			gbc_progressBar.fill = GridBagConstraints.HORIZONTAL;
+			gbc_progressBar.gridx = 1;
+			gbc_progressBar.gridy = 0;
+			panel.add(getProgressBar(), gbc_progressBar);
+		}
+		return panel;
+	}
+	private JLabel getLbEjecutando() {
+		if (lbEjecutando == null) {
+			lbEjecutando = new JLabel("");
+		}
+		return lbEjecutando;
+	}
+	private JPanel getPanel_3() {
+		if (panel_3 == null) {
+			panel_3 = new JPanel();
+			panel_3.add(getLbEjecutando());
+		}
+		return panel_3;
 	}
 }
