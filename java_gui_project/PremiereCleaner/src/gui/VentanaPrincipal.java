@@ -57,6 +57,7 @@ public class VentanaPrincipal extends JFrame {
 	private JPanel panel_2;
 	private JTextField txPathSeleccionado;
 	private JButton btEjecutar;
+//	private final String DEFAULT_PATH = "D:\\cap17 26092016";
 	private final String DEFAULT_PATH = "J:\\";
 	
 	VentanaPrincipal vp;
@@ -71,7 +72,7 @@ public class VentanaPrincipal extends JFrame {
 	private int contadorAVI = 0;
 	private int contadorDirectoriosPRV = 0;
 	private int contadorNoEliminados = 0;
-	private int tamCFA = 0;	// contador para calcular tamaï¿½os totales
+	private int tamCFA = 0;	// contador para calcular tamaños totales
 	private int tamPEK = 0;
 	private int tamAVI = 0;
 	
@@ -281,7 +282,7 @@ public class VentanaPrincipal extends JFrame {
 	}
 	
 	/**
-	 * Mï¿½todo que elimina TODOS los archivos encontrados
+	 * Método que elimina TODOS los archivos encontrados
 	 */
 	private void eliminarArchivos(){
 		int contadorEliminados = 0;
@@ -300,8 +301,8 @@ public class VentanaPrincipal extends JFrame {
 			//txAreaLog.append("## LIMPIEZA FINALIZADA ##\nSe han eliminado " + contadorEliminados + " archivos.");
 		}
 		if(contadorNoEliminados > 0){
-			JOptionPane.showMessageDialog(vp, "No se han eliminado " + contadorNoEliminados + " archivos", "ï¿½Atenciï¿½n!", JOptionPane.WARNING_MESSAGE);
-			txAreaLog.append("\n *** ï¿½Atenciï¿½n! No se han eliminado " + contadorNoEliminados + " archivos ***");
+			JOptionPane.showMessageDialog(vp, "No se han eliminado " + contadorNoEliminados + " archivos", "¡Atención!", JOptionPane.WARNING_MESSAGE);
+			txAreaLog.append("\n *** ¡Atención! No se han eliminado " + contadorNoEliminados + " archivos ***");
 			for (File file : listaNOEliminados) {
 				if(chckbxmntmMostrarRutaCompleta.isSelected())
 					txAreaLog.append(file.getAbsolutePath() + "\n");
@@ -343,15 +344,15 @@ public class VentanaPrincipal extends JFrame {
 			progressBar.setValue(progressBar.getMaximum());
 			lbTiempoEjecucion.setText("Tiempo: "+ (t2-t1) + " ms");
 			printStats("ENCONTRADOS");
-			JOptionPane.showMessageDialog(vp, "ï¿½Ejecuciï¿½n finalizada!", "Escaneo completo", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(vp, "¡Ejecución finalizada!", "Escaneo completo", JOptionPane.INFORMATION_MESSAGE);
 		}else{
-			JOptionPane.showMessageDialog(vp, "ï¿½El directorio/archivo seleccionado: < "+txPathSeleccionado.getText()+" >  no existe!", "Error, no te inventes la ruta ;)", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(vp, "¡El directorio/archivo seleccionado: < "+txPathSeleccionado.getText()+" >  no existe!", "Error, no te inventes la ruta ;)", JOptionPane.ERROR_MESSAGE);
 			btSeleccionar.grabFocus();
 		}
 	}
 	
 	/**
-	 * Imprime estadisticas de la ejecuciï¿½n
+	 * Imprime estadisticas de la ejecución
 	 * @param accion
 	 */
 	private void printStats(String accion){
@@ -463,7 +464,7 @@ public class VentanaPrincipal extends JFrame {
 			mntmAcercaDe = new JMenuItem("Acerca de");
 			mntmAcercaDe.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					JOptionPane.showMessageDialog(vp, "Premiere Pro Cleaner v1.0\nSoftware desarrollado por Miguel Martï¿½nez Serrano 2017\nwww.miguelms.es","Informaciï¿½n del programa",JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(vp, "Premiere Pro Cleaner v1.0\nSoftware desarrollado por Miguel Martínez Serrano 2017\nwww.miguelms.es","Información del programa",JOptionPane.INFORMATION_MESSAGE);
 				}
 			});
 		}
