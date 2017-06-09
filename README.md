@@ -9,4 +9,4 @@ Adobe proyect <b>size before</b> using the cleaner <b>110 GB</b>, and <b>after</
 
 <img src="./python_app/adobe-premiere-pro-cleaner.PNG">
 
-<small>broom icon by <a href="http://www.flaticon.com/authors/nikita-golubev">nikita golubev</a>, and premiere pro logo by adobe.</small>
+<small>Premiere Pro logo by Adobe and Broom icon by <a href="http://www.flaticon.com/authors/nikita-golubev">nikita golubev</a>.</small>
