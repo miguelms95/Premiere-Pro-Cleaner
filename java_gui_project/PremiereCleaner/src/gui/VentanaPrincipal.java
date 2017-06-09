@@ -14,15 +14,10 @@ import java.awt.Font;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JTextArea;
-import java.awt.GridLayout;
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.util.ArrayList;
 
 import javax.swing.JTextField;
-import javax.swing.JViewport;
-
 import java.awt.FlowLayout;
 import java.awt.Color;
 import java.awt.event.ActionListener;
@@ -64,7 +59,7 @@ public class VentanaPrincipal extends JFrame {
 	private JTextField txPathSeleccionado;
 	private JButton btEjecutar;
 	//private final String DEFAULT_PATH = "J:\\";
-	private final String DEFAULT_PATH = "C:\\Users\\";
+	//private final String DEFAULT_PATH = "C:\\Users\\";
 	
 	VentanaPrincipal vp;
 	private ArrayList<File> listaArchivos = new ArrayList<File>();
@@ -358,7 +353,7 @@ public class VentanaPrincipal extends JFrame {
 			jf = new JFileChooser(System.getProperty("user.home") + "/Desktop");
 		jf.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		
-		if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
+		if(jf.showOpenDialog(vp) == JFileChooser.APPROVE_OPTION){
 			txPathSeleccionado.setText(jf.getSelectedFile().getAbsolutePath());
 			btEjecutar.setFont(new Font("Tahoma", Font.BOLD, 12));
 			btEjecutar.setEnabled(true);
