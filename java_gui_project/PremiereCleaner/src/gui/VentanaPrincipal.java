@@ -210,7 +210,7 @@ public class VentanaPrincipal extends JFrame {
 		if (txPathSeleccionado == null) {
 			txPathSeleccionado = new JTextField();
 			txPathSeleccionado.setFont(new Font("Tahoma", Font.PLAIN, 13));
-			txPathSeleccionado.setText(DEFAULT_PATH);
+			txPathSeleccionado.setText(System.getProperty("user.home") + "\\Desktop");
 			txPathSeleccionado.setColumns(30);
 		}
 		return txPathSeleccionado;
@@ -333,7 +333,12 @@ public class VentanaPrincipal extends JFrame {
 	}
 	
 	private void seleccionarDirectorio(){
-		JFileChooser jf = new JFileChooser();
+		File tempFile = new File(txPathSeleccionado.getText().toString());
+		JFileChooser jf = null;
+		if(tempFile.exists())
+			jf = new JFileChooser(txPathSeleccionado.getText().toString());
+		else
+			jf = new JFileChooser(System.getProperty("user.home") + "/Desktop");
 		jf.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		
 		if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
