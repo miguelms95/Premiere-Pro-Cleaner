@@ -42,6 +42,9 @@ import java.awt.Insets;
 import javax.swing.ImageIcon;
 import java.awt.Toolkit;
 import java.awt.Dimension;
+import javax.swing.KeyStroke;
+import java.awt.event.KeyEvent;
+import java.awt.event.InputEvent;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -96,6 +99,12 @@ public class VentanaPrincipal extends JFrame {
 	private JPanel panel_3;
 	private JMenuItem mntmReiniciar;
 	private JLabel lbIcono;
+	
+	private MyThread hiloEjecucion = null;
+	private Thread hiloEliminacion = null;
+	
+	private JButton btStop;
+	private JMenuItem mntmEcanearYLimpiar;
 	
 	/**
 	 * Launch the application.
@@ -172,6 +181,8 @@ public class VentanaPrincipal extends JFrame {
 	private JButton getBtSeleccionar() {
 		if (btSeleccionar == null) {
 			btSeleccionar = new JButton("Seleccionar directorio");
+			btSeleccionar.setToolTipText("Seleccionar el directorio a escanear");
+			btSeleccionar.setMnemonic('s');
 			btSeleccionar.setFont(new Font("Tahoma", Font.PLAIN, 13));
 			btSeleccionar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
@@ -203,6 +214,7 @@ public class VentanaPrincipal extends JFrame {
 			panel_2.add(getTxPathSeleccionado());
 			panel_2.add(getBtEjecutar());
 			panel_2.add(getBtnSoloEscanear());
+			panel_2.add(getBtStop());
 		}
 		return panel_2;
 	}
@@ -211,20 +223,25 @@ public class VentanaPrincipal extends JFrame {
 			txPathSeleccionado = new JTextField();
 			txPathSeleccionado.setFont(new Font("Tahoma", Font.PLAIN, 13));
 			txPathSeleccionado.setText(System.getProperty("user.home") + "\\Desktop");
-			txPathSeleccionado.setColumns(30);
+			txPathSeleccionado.setColumns(25);
 		}
 		return txPathSeleccionado;
 	}
 	private JButton getBtEjecutar() {
 		if (btEjecutar == null) {
 			btEjecutar = new JButton("Escanear y limpiar");
+			btEjecutar.setToolTipText("Escanear archivos temporales y eliminarlos");
+			btEjecutar.setMnemonic('l');
 			btEjecutar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					
-					MyThread myThread = new MyThread();
-					myThread.start();
 					//escanear();
-					eliminarArchivos();
+					hiloEliminacion = new Thread(){
+						public void run() {
+							escanear();
+							eliminarArchivos();
+						};
+					};
+					hiloEliminacion.start();
 				}
 			});
 			btEjecutar.setFont(new Font("Tahoma", Font.PLAIN, 13));
@@ -343,7 +360,7 @@ public class VentanaPrincipal extends JFrame {
 		
 		if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
 			txPathSeleccionado.setText(jf.getSelectedFile().getAbsolutePath());
-			btEjecutar.setFont(new Font("Tahoma", Font.BOLD, 11));
+			btEjecutar.setFont(new Font("Tahoma", Font.BOLD, 12));
 			btEjecutar.setEnabled(true);
 			btEjecutar.setForeground(Color.BLACK);
 			btEjecutar.grabFocus();
@@ -362,6 +379,8 @@ public class VentanaPrincipal extends JFrame {
 			progressBar.repaint();
 			vp.repaint();
 			//System.out.println(new File(txPathSeleccionado.getText()).list().length);
+			btStop.setEnabled(true);
+			btStop.setForeground(Color.RED);
 			long t1 = System.currentTimeMillis();
 			escanearArchivos(txPathSeleccionado.getText());
 			long t2 = System.currentTimeMillis();
@@ -369,6 +388,8 @@ public class VentanaPrincipal extends JFrame {
 			progressBar.setString("100%");
 			lbTiempoEjecucion.setText("Tiempo: "+ (t2-t1) + " ms");
 			printStats("ENCONTRADOS");
+			btStop.setEnabled(false);
+			btStop.setForeground(Color.GRAY);
 			JOptionPane.showMessageDialog(vp, "¡Ejecución finalizada!", "Escaneo completo", JOptionPane.INFORMATION_MESSAGE);
 		}else{
 			JOptionPane.showMessageDialog(vp, "¡El directorio/archivo seleccionado: < "+txPathSeleccionado.getText()+" >  no existe!", "Error, no te inventes la ruta ;)", JOptionPane.ERROR_MESSAGE);
@@ -428,8 +449,10 @@ public class VentanaPrincipal extends JFrame {
 	private JMenu getMnAplicacin() {
 		if (mnAplicacin == null) {
 			mnAplicacin = new JMenu("Aplicaci\u00F3n");
+			mnAplicacin.setMnemonic('a');
 			mnAplicacin.add(getMntmSeleccionarDirectorio());
 			mnAplicacin.add(getMntmEjecutar());
+			mnAplicacin.add(getMntmEcanearYLimpiar());
 			mnAplicacin.add(getMntmReiniciar());
 			mnAplicacin.add(getSeparator());
 			mnAplicacin.add(getMntmSalir());
@@ -439,6 +462,7 @@ public class VentanaPrincipal extends JFrame {
 	private JMenu getMnAyuda() {
 		if (mnAyuda == null) {
 			mnAyuda = new JMenu("Ayuda");
+			mnAyuda.setMnemonic('y');
 			mnAyuda.add(getMntmAcercaDe());
 		}
 		return mnAyuda;
@@ -446,6 +470,7 @@ public class VentanaPrincipal extends JFrame {
 	private JMenuItem getMntmSeleccionarDirectorio() {
 		if (mntmSeleccionarDirectorio == null) {
 			mntmSeleccionarDirectorio = new JMenuItem("Seleccionar directorio...");
+			mntmSeleccionarDirectorio.setMnemonic('s');
 			mntmSeleccionarDirectorio.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					seleccionarDirectorio();
@@ -456,11 +481,13 @@ public class VentanaPrincipal extends JFrame {
 	}
 	private JMenuItem getMntmEjecutar() {
 		if (mntmEjecutar == null) {
-			mntmEjecutar = new JMenuItem("Ejecutar");
+			mntmEjecutar = new JMenuItem("Solo escanear");
+			mntmEjecutar.setMnemonic('e');
+			mntmEjecutar.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK));
 			mntmEjecutar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					
-					MyThread hiloEjecucion = new MyThread();
+					hiloEjecucion = new MyThread();
 					hiloEjecucion.start();
 					//escanear();
 					resetData();
@@ -492,7 +519,7 @@ public class VentanaPrincipal extends JFrame {
 			mntmAcercaDe = new JMenuItem("Acerca de");
 			mntmAcercaDe.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					JOptionPane.showMessageDialog(vp, "Premiere Pro Cleaner v1.0\nSoftware desarrollado por Miguel Martínez Serrano 2017\nwww.miguelms.es","Información del programa",JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(vp, "Premiere Pro Cleaner v1.0\nSoftware desarrollado por Miguel Martínez Serrano 2017\nwww.miguelms.es\n\nLogotipo contiene imagen de Adobe e icono de escoba de Nikita Golubev.","Información del programa",JOptionPane.INFORMATION_MESSAGE);
 				}
 			});
 		}
@@ -501,6 +528,7 @@ public class VentanaPrincipal extends JFrame {
 	private JMenu getMnOpciones() {
 		if (mnOpciones == null) {
 			mnOpciones = new JMenu("Opciones");
+			mnOpciones.setMnemonic('o');
 			mnOpciones.add(getChckbxmntmMostrarRutaCompleta());
 		}
 		return mnOpciones;
@@ -508,11 +536,12 @@ public class VentanaPrincipal extends JFrame {
 	private JCheckBoxMenuItem getChckbxmntmMostrarRutaCompleta() {
 		if (chckbxmntmMostrarRutaCompleta == null) {
 			chckbxmntmMostrarRutaCompleta = new JCheckBoxMenuItem("Mostrar ruta completa");
+			chckbxmntmMostrarRutaCompleta.setMnemonic('m');
 			chckbxmntmMostrarRutaCompleta.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent arg0) {
 					if(txAreaLog.getText().toString().length()>0 && !listaArchivos.isEmpty()){
 						txAreaLog.setText("");
-						MyThread hiloEjecucion = new MyThread();
+						hiloEjecucion = new MyThread();
 						hiloEjecucion.start();
 	//					escanear();
 						resetData();
@@ -527,12 +556,14 @@ public class VentanaPrincipal extends JFrame {
 	private JButton getBtnSoloEscanear() {
 		if (btnSoloEscanear == null) {
 			btnSoloEscanear = new JButton("Solo escanear");
+			btnSoloEscanear.setToolTipText("Escanear archivos");
+			btnSoloEscanear.setMnemonic('e');
 			btnSoloEscanear.setFont(new Font("Tahoma", Font.PLAIN, 13));
 			btnSoloEscanear.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					
-					MyThread myThread = new MyThread();
-					myThread.start();
+					hiloEjecucion = new MyThread();
+					hiloEjecucion.start();
 					//escanear();
 					resetData();
 				}
@@ -562,7 +593,12 @@ public class VentanaPrincipal extends JFrame {
 		contadorNoEliminados = 0;
 		tamCFA = 0;	
 		tamPEK = 0;
-		tamAVI = 0;		
+		tamAVI = 0;
+	}
+	
+	private void resetProgress(){
+		progressBar.setValue(0);
+		progressBar.setString("0%");
 	}
 	private JPanel getPanel() {
 		if (panel == null) {
@@ -603,12 +639,16 @@ public class VentanaPrincipal extends JFrame {
 	private JMenuItem getMntmReiniciar() {
 		if (mntmReiniciar == null) {
 			mntmReiniciar = new JMenuItem("Reiniciar");
+			mntmReiniciar.setMnemonic('r');
+			mntmReiniciar.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK));
 			mntmReiniciar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
+					if(btStop.isEnabled())
+						btStop.doClick();
 					resetData();
 					progressBar.setValue(0);
 					lbTiempoEjecucion.setText("");
-					txPathSeleccionado.setText(DEFAULT_PATH);
+					//txPathSeleccionado.setText(DEFAULT_PATH);
 				}
 			});
 		}
@@ -628,5 +668,42 @@ public class VentanaPrincipal extends JFrame {
 			lbIcono.setIcon(new ImageIcon(VentanaPrincipal.class.getResource("/img/logo_small.png")));
 		}
 		return lbIcono;
+	}
+	private JButton getBtStop() {
+		if (btStop == null) {
+			btStop = new JButton("Stop");
+			btStop.setMnemonic('t');
+			btStop.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					if(hiloEjecucion != null)
+						hiloEjecucion.stop();
+					if(hiloEliminacion != null)
+						hiloEliminacion.stop();
+					resetData();
+					resetProgress();
+					btStop.setEnabled(false);
+					btStop.setForeground(Color.GRAY);
+					btSeleccionar.grabFocus();
+				}
+			});
+			btStop.setEnabled(false);
+			btStop.setForeground(Color.GRAY);
+			btStop.setToolTipText("Parar esc\u00E1ner");
+			btStop.setFont(new Font("Tahoma", Font.PLAIN, 13));
+		}
+		return btStop;
+	}
+	private JMenuItem getMntmEcanearYLimpiar() {
+		if (mntmEcanearYLimpiar == null) {
+			mntmEcanearYLimpiar = new JMenuItem("Ecanear y limpiar");
+			mntmEcanearYLimpiar.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					btEjecutar.doClick();
+				}
+			});
+			mntmEcanearYLimpiar.setMnemonic('l');
+			mntmEcanearYLimpiar.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_MASK));
+		}
+		return mntmEcanearYLimpiar;
 	}
 }
