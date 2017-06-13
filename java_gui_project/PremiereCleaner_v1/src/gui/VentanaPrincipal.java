@@ -1,6 +1,6 @@
 /**
  * (c) 2017 Miguel Martínez Serrano. www.miguelms.es
- * @Version: 2.0
+ * @Version: 1.0
  * 
  * */
 package gui;
