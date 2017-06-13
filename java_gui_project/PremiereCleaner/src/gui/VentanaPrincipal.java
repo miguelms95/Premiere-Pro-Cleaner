@@ -257,8 +257,9 @@ public class VentanaPrincipal extends JFrame {
 	    File directorio = new File(directoryName);
 	    
 //    	System.out.println(directorio.getName());
-	    if((directoryName.toString().equals(txPathSeleccionado.getText().toString())) || 
-	    		(!directorio.isHidden() && !directorio.getName().startsWith("$"))){
+	    if(((directoryName.toString().equals(txPathSeleccionado.getText().toString())) || 
+	    		(!directorio.isHidden() && !directorio.getName().startsWith("$"))) &&
+	    		!directorio.getName().toString().equals("tdata")){ // ignora telegram data para optimizar
 	    	
 //	    	System.out.println("-> "+txPathSeleccionado.getText().toString() + " -- " + directoryName);
 //	    	System.out.println(directoryName.toString().equals(txPathSeleccionado.getText().toString()));
