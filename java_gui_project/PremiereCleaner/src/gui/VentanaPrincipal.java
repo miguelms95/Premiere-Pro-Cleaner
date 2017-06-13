@@ -42,6 +42,7 @@ import java.awt.Dimension;
 import javax.swing.KeyStroke;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
+import javax.swing.SwingConstants;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -102,6 +103,7 @@ public class VentanaPrincipal extends JFrame {
 	
 	private JButton btStop;
 	private JMenuItem mntmEcanearYLimpiar;
+	private JLabel lbVersion;
 	
 	/**
 	 * Launch the application.
@@ -156,6 +158,7 @@ public class VentanaPrincipal extends JFrame {
 			panelTop = new JPanel();
 			panelTop.add(getLbIcono());
 			panelTop.add(getLblAdobePremierePro());
+			panelTop.add(getLbVersion());
 		}
 		return panelTop;
 	}
@@ -276,17 +279,19 @@ public class VentanaPrincipal extends JFrame {
 		        	else
 		        		printName = file.getName();
 			        if (file.isFile()) {
-			        	if(printName.endsWith(".cfa")){
+			        	if(printName.endsWith(".cfa") || printName.endsWith(".CFA")){
 			        		contadorCFA += 1;
 			        		tamCFA += file.length();
-			        	}else if(printName.endsWith(".pek")){
+			        	}else if(printName.endsWith(".pek") || printName.endsWith(".PEK")){
 			        		contadorPEK += 1;
 			        		tamPEK += file.length();
-			        	}else if(printName.startsWith("Rendered - ") && printName.endsWith(".AVI")){
+			        	}else if(printName.startsWith("Rendered - ") && (printName.endsWith(".AVI") || printName.endsWith(".avi"))){
 			        		contadorAVI += 1;
 			        		tamAVI += file.length();
 			        	}
-			        	if(printName.endsWith(".cfa") || printName.endsWith(".pek") || (printName.startsWith("Rendered - ") && printName.endsWith(".AVI"))){
+			        	if(printName.endsWith(".cfa")|| printName.endsWith(".CFA") 
+			        			|| printName.endsWith(".pek") || printName.endsWith(".PEK")
+			        			|| (printName.startsWith("Rendered - ") && (printName.endsWith(".AVI") || printName.endsWith(".avi")))){
 			        		listaArchivos.add(file);
 			        		txAreaLog.append("   "+printName+" - "+file.length()/1000000.0+" MB\n");
 			        	}
@@ -391,8 +396,9 @@ public class VentanaPrincipal extends JFrame {
 			btStop.setForeground(Color.GRAY);
 
 			JScrollBar vertical = scrollPane.getVerticalScrollBar();
-			vertical.setValue(vertical.getMaximum()); // scroll down cuando ejecuta para ver resultados
-
+			vertical.setValue(vertical.getMaximum()+1000); // scroll down cuando ejecuta para ver resultados
+			
+			
 			JOptionPane.showMessageDialog(vp, "¡Ejecución finalizada!", "Escaneo completo", JOptionPane.INFORMATION_MESSAGE);
 		}else{
 			JOptionPane.showMessageDialog(vp, "¡El directorio/archivo seleccionado: < "+txPathSeleccionado.getText()+" >  no existe!", "Error, no te inventes la ruta ;)", JOptionPane.ERROR_MESSAGE);
@@ -708,5 +714,11 @@ public class VentanaPrincipal extends JFrame {
 			mntmEcanearYLimpiar.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_MASK));
 		}
 		return mntmEcanearYLimpiar;
+	}
+	private JLabel getLbVersion() {
+		if (lbVersion == null) {
+			lbVersion = new JLabel("v1.0");
+		}
+		return lbVersion;
 	}
 }
