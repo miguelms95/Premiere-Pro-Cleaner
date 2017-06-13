@@ -31,6 +31,8 @@ import javax.swing.JSeparator;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollBar;
+
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -317,6 +319,7 @@ public class VentanaPrincipal extends JFrame {
 	 */
 	private void eliminarArchivos(){
 		int contadorEliminados = 0;
+		int contadorDirectoriosEliminados = 0;
 		for (File file : listaArchivos) {
 			if(!file.delete()){
 				listaNOEliminados.add(file);
@@ -325,10 +328,11 @@ public class VentanaPrincipal extends JFrame {
 				contadorEliminados += 1;
 		}
 		for (File file : listaDirectoriosPRV) {
-			file.delete();
+			if(file.delete())
+				contadorDirectoriosEliminados += 1;
 		}
 		if(contadorEliminados > 0){
-			JOptionPane.showMessageDialog(vp, "Se han eliminado " + contadorEliminados + " archivos", "Limpieza finalizada", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(vp, "Se han eliminado " + contadorEliminados + " archivos y " + contadorDirectoriosEliminados + " directorios", "Limpieza finalizada", JOptionPane.INFORMATION_MESSAGE);
 			//txAreaLog.append("## LIMPIEZA FINALIZADA ##\nSe han eliminado " + contadorEliminados + " archivos.");
 		}
 		if(contadorNoEliminados > 0){
@@ -385,6 +389,10 @@ public class VentanaPrincipal extends JFrame {
 			printStats("ENCONTRADOS");
 			btStop.setEnabled(false);
 			btStop.setForeground(Color.GRAY);
+
+			JScrollBar vertical = scrollPane.getVerticalScrollBar();
+			vertical.setValue(vertical.getMaximum()); // scroll down cuando ejecuta para ver resultados
+
 			JOptionPane.showMessageDialog(vp, "¡Ejecución finalizada!", "Escaneo completo", JOptionPane.INFORMATION_MESSAGE);
 		}else{
 			JOptionPane.showMessageDialog(vp, "¡El directorio/archivo seleccionado: < "+txPathSeleccionado.getText()+" >  no existe!", "Error, no te inventes la ruta ;)", JOptionPane.ERROR_MESSAGE);
