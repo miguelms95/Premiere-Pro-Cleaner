@@ -588,7 +588,7 @@ public class VentanaPrincipal extends JFrame {
 			mntmAcercaDe = new JMenuItem("Acerca de");
 			mntmAcercaDe.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					JOptionPane.showMessageDialog(vp, "Premiere Pro Cleaner v1.0\nSoftware desarrollado por Miguel Martínez Serrano 2017\nwww.miguelms.es\n\nLogotipo contiene imagen de Adobe e icono de escoba de Nikita Golubev.","Información del programa",JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(vp, "Premiere Pro Cleaner v2.0\nSoftware desarrollado por Miguel Martínez Serrano 2017\nwww.miguelms.es\n\nLogotipo contiene imagen de Adobe e icono de escoba de Nikita Golubev.","Información del programa",JOptionPane.INFORMATION_MESSAGE);
 				}
 			});
 		}
@@ -782,7 +782,7 @@ public class VentanaPrincipal extends JFrame {
 	}
 	private JLabel getLbVersion() {
 		if (lbVersion == null) {
-			lbVersion = new JLabel("v1.0");
+			lbVersion = new JLabel("v2.0");
 		}
 		return lbVersion;
 	}
