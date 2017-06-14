@@ -96,7 +96,13 @@ public class VentanaPrincipal extends JFrame {
 	private ArrayList<File> listaDirectoriosPRV = new ArrayList<File>();
 	
 	private ArrayList<File> listaMediosUtilizados = new ArrayList<File>();
+	private ArrayList<File> listaMediosNoUtilizados = new ArrayList<File>();
 	private DefaultListModel<File> modeloListaUtilizados = new DefaultListModel<File>();
+	private DefaultListModel<File> modeloListaNoUtilizados = new DefaultListModel<File>();
+	
+	private int contadorUtilizados = 0;
+	private int contadorNoUtilizados = 0;
+	
 	
 	private JScrollPane scrollPane;
 	private JTextArea txAreaLog;
@@ -184,7 +190,7 @@ public class VentanaPrincipal extends JFrame {
 		vp = this;
 		setTitle("Premiere Pro Cleaner");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 713, 648);
+		setBounds(100, 100, 882, 758);
 		setJMenuBar(getMenuBar_1());
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -648,6 +654,11 @@ public class VentanaPrincipal extends JFrame {
 		listaArchivos = new ArrayList<File>();
 		listaNOEliminados = new ArrayList<File>();
 		listaDirectoriosPRV = new ArrayList<File>();
+		listaMediosNoUtilizados = new ArrayList<File>();
+		listaMediosUtilizados = new ArrayList<File>();
+		
+		contadorNoUtilizados = 0;
+		contadorUtilizados = 0;
 		
 		contadorCFA = 0;
 		contadorPEK = 0;
@@ -878,7 +889,14 @@ public class VentanaPrincipal extends JFrame {
 			btEscanearMedios.setFont(new Font("Tahoma", Font.BOLD, 13));
 			btEscanearMedios.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
+					modeloListaNoUtilizados.clear();
+					modeloListaUtilizados.clear();
+					
+					String txLogAntes = txAreaLog.getText();
 					escanearProyecto();
+					txAreaLog.setText(txLogAntes);
+					resetData();
+					resetProgress();
 				}
 			});
 		}
@@ -887,10 +905,8 @@ public class VentanaPrincipal extends JFrame {
 	
 	private void escanearProyecto(){
 		File file = new File(txPathProyecto.getText().toString()); // ruta absoluta al proyecto
-		System.err.println(file.getParent());
 		
-		// primero escaneo archivos basura para no utilizarlos luego
-		//escanearArchivos(file.getParent());
+		// PRIMERO escaneo los medios utilizados
 		
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
 		        .newInstance();
@@ -899,7 +915,6 @@ public class VentanaPrincipal extends JFrame {
 			documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			Document document = documentBuilder.parse(file);
 			NodeList lista = document.getElementsByTagName("ActualMediaFilePath");
-			int counterFiles = 0;
 			for(int i = 0; i<lista.getLength();i++){
 				String ruta = lista.item(i).getTextContent();
 				if(!ruta.startsWith("1")){
@@ -908,14 +923,14 @@ public class VentanaPrincipal extends JFrame {
 					}
 					File f = new File(ruta);
 					if(f.exists()){
-						counterFiles +=1;
-						System.out.println(f.getAbsolutePath() + ", file: " + counterFiles);
+						contadorUtilizados +=1;
+						System.out.println(f.getAbsolutePath() + ", file: " + contadorUtilizados);
 						modeloListaUtilizados.addElement(f);
 						listaMediosUtilizados.add(f);
 					}
 				}
 			}
-			lblMediosUtilizados.setText(" Medios utilizados ("+counterFiles+" archivos):");
+			lblMediosUtilizados.setText(" Medios utilizados ("+listaMediosUtilizados.size()+" archivos):");
 			
 		} catch (ParserConfigurationException e) {
 			// TODO Auto-generated catch block
@@ -927,6 +942,55 @@ public class VentanaPrincipal extends JFrame {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		System.err.println(file.getParent());
+		
+		// SEGUNDO escaneo TODOS los archivos  menos los basura para no utilizarlos luego
+		escanearArchivos(file.getParent());
+		// en "listaArchivos" tengo toda la basura
+		
+		escanearMediosNoUtilizados(file.getParent());
+		lblMediosNoUtilizados.setText(" Medios NO utilizados ("+listaMediosNoUtilizados.size()+ " archivos)");
+	}
+	
+	
+	public void escanearMediosNoUtilizados(String directoryName) {
+	    File directorio = new File(directoryName);
+	    
+	    if(((directoryName.toString().equals(txPathProyecto.getText().toString())) || 
+	    		(!directorio.isHidden() && !directorio.getName().startsWith("$"))) &&
+	    		!directorio.getName().toString().equals("tdata")){ // ignora telegram data para optimizar
+	    	
+		    File[] fList = directorio.listFiles();
+		    
+		    //progressBar.setString(directorio.getAbsolutePath());
+		    for (int i=0; fList != null && i<fList.length;i++) {
+		    	File file = fList[i];
+		    	if(!file.isHidden()){
+		    		String printName;
+		        	if(chckbxmntmMostrarRutaCompleta.isSelected())
+		        		printName = file.getAbsolutePath();
+		        	else
+		        		printName = file.getName();
+			        if (file.isFile()) {
+			        	if(!listaArchivos.contains(file) // que no este en la basura
+			        			&& !listaMediosUtilizados.contains(file)){ // no está en los utilizados
+			        		modeloListaNoUtilizados.addElement(file);
+			        		listaMediosNoUtilizados.add(file);
+			        	}
+			        	
+			        }else if (file.isDirectory()) {
+			        	// simulación imperfecta de progreso
+//			        	if(progressBar.getValue() < progressBar.getMaximum()-1){
+//			        		progressBar.setValue(progressBar.getValue()+1);
+//			        		progressBar.repaint();
+//			        	}
+			        	if(!printName.endsWith(".PRV"))
+			        		escanearMediosNoUtilizados(file.getAbsolutePath());
+			        }
+		        }
+		    } // fin for
+	    }	// fin if recycler
 	}
 	
 	private JPanel getPnManagerListas() {
@@ -969,6 +1033,7 @@ public class VentanaPrincipal extends JFrame {
 	private JList getListaNoUtilizados() {
 		if (listaNoUtilizados == null) {
 			listaNoUtilizados = new JList();
+			listaNoUtilizados.setModel(modeloListaNoUtilizados);
 			listaNoUtilizados.setBorder(new LineBorder(new Color(192, 192, 192)));
 		}
 		return listaNoUtilizados;
@@ -1006,14 +1071,14 @@ public class VentanaPrincipal extends JFrame {
 		if (lblMediosUtilizados == null) {
 			lblMediosUtilizados = new JLabel(" Medios utilizados:");
 			lblMediosUtilizados.setForeground(new Color(0, 128, 0));
-			lblMediosUtilizados.setFont(new Font("Tahoma", Font.PLAIN, 12));
+			lblMediosUtilizados.setFont(new Font("Tahoma", Font.BOLD, 12));
 		}
 		return lblMediosUtilizados;
 	}
 	private JLabel getLblMediosNoUtilizados() {
 		if (lblMediosNoUtilizados == null) {
 			lblMediosNoUtilizados = new JLabel(" Medios NO utilizados:");
-			lblMediosNoUtilizados.setFont(new Font("Tahoma", Font.PLAIN, 12));
+			lblMediosNoUtilizados.setFont(new Font("Tahoma", Font.BOLD, 12));
 			lblMediosNoUtilizados.setForeground(new Color(220, 20, 60));
 		}
 		return lblMediosNoUtilizados;
