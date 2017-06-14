@@ -20,6 +20,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JTextArea;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.JTextField;
@@ -54,8 +55,19 @@ import java.awt.GridLayout;
 import javax.swing.JList;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.border.BevelBorder;
+import javax.swing.AbstractListModel;
+import javax.swing.DefaultListModel;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -81,6 +93,9 @@ public class VentanaPrincipal extends JFrame {
 	private ArrayList<File> listaArchivos = new ArrayList<File>();
 	private ArrayList<File> listaNOEliminados = new ArrayList<File>();
 	private ArrayList<File> listaDirectoriosPRV = new ArrayList<File>();
+	
+	private ArrayList<File> listaMediosUtilizados = new ArrayList<File>();
+	private DefaultListModel<File> modeloListaUtilizados = new DefaultListModel<File>();
 	
 	private JScrollPane scrollPane;
 	private JTextArea txAreaLog;
@@ -125,7 +140,7 @@ public class VentanaPrincipal extends JFrame {
 	private JLabel lblSeleccionarProyectoDe;
 	private JButton btnSeleccionarProyecto;
 	private JPanel panel_5;
-	private JTextField txtCmiproyectoprproj;
+	private JTextField txPathProyecto;
 	private JButton btnBuscarMediosUtilizados;
 	private JPanel pnManagerListas;
 	private JScrollPane pnMediosUtilizados;
@@ -821,20 +836,21 @@ public class VentanaPrincipal extends JFrame {
 	private JPanel getPanel_5() {
 		if (panel_5 == null) {
 			panel_5 = new JPanel();
-			panel_5.add(getTxtCmiproyectoprproj());
+			panel_5.add(getTxPathProyecto());
 			panel_5.add(getBtnBuscarMediosUtilizados());
 			panel_5.add(getBtnLimpiarMedios());
 		}
 		return panel_5;
 	}
-	private JTextField getTxtCmiproyectoprproj() {
-		if (txtCmiproyectoprproj == null) {
-			txtCmiproyectoprproj = new JTextField();
-			txtCmiproyectoprproj.setFont(new Font("Tahoma", Font.PLAIN, 13));
-			txtCmiproyectoprproj.setText("C:\\miproyecto.prproj");
-			txtCmiproyectoprproj.setColumns(25);
+	private JTextField getTxPathProyecto() {
+		if (txPathProyecto == null) {
+			txPathProyecto = new JTextField();
+			txPathProyecto.setText("D:\\PROYECTO 6 - LOS TALENTOS\\Proyecto 6 - Capitulo Los Talentos.prproj");
+			txPathProyecto.setFont(new Font("Tahoma", Font.PLAIN, 13));
+			//txPathProyecto.setText("D:\\Documentos\\Investigaci\u00F3n\\PremiereCleaner\\Proyecto pruebas\\proyecto multimedia de pruebas.prproj");
+			txPathProyecto.setColumns(25);
 		}
-		return txtCmiproyectoprproj;
+		return txPathProyecto;
 	}
 	private JButton getBtnBuscarMediosUtilizados() {
 		if (btnBuscarMediosUtilizados == null) {
@@ -842,11 +858,60 @@ public class VentanaPrincipal extends JFrame {
 			btnBuscarMediosUtilizados.setFont(new Font("Tahoma", Font.BOLD, 13));
 			btnBuscarMediosUtilizados.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
+					escanearProyecto();
 				}
 			});
 		}
 		return btnBuscarMediosUtilizados;
 	}
+	
+	private void escanearProyecto(){
+		File file = new File(txPathProyecto.getText().toString()); // ruta absoluta al proyecto
+		
+		// primero escaneo archivos basura para no utilizarlos luego
+		
+		//escanearArchivos(file.getParent());
+		
+		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
+		        .newInstance();
+		DocumentBuilder documentBuilder;
+		try {
+			documentBuilder = documentBuilderFactory.newDocumentBuilder();
+			Document document = documentBuilder.parse(file);
+			NodeList lista = document.getElementsByTagName("ActualMediaFilePath");
+			int counterFiles = 0;
+			for(int i = 0; i<lista.getLength();i++){
+				String ruta = lista.item(i).getTextContent();
+				if(!ruta.startsWith("1")){
+					if(ruta.startsWith("\\\\?\\")){
+						ruta = ruta.substring(4);
+					}
+					File f = new File(ruta);
+					if(f.exists()){
+						counterFiles +=1;
+						System.out.println(f.getAbsolutePath() + ", file: " + counterFiles);
+						modeloListaUtilizados.addElement(f);
+						listaMediosUtilizados.add(f);
+					}
+				}
+			}
+			lblMediosUtilizados.setText(" Medios utilizados ("+counterFiles+" archivos):");
+			
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		System.err.println(file.getParent());
+		
+	}
+	
 	private JPanel getPnManagerListas() {
 		if (pnManagerListas == null) {
 			pnManagerListas = new JPanel();
@@ -878,6 +943,8 @@ public class VentanaPrincipal extends JFrame {
 	private JList getListaUtilizados() {
 		if (listaUtilizados == null) {
 			listaUtilizados = new JList();
+			
+			listaUtilizados.setModel(modeloListaUtilizados);
 			listaUtilizados.setBorder(new LineBorder(new Color(192, 192, 192)));
 		}
 		return listaUtilizados;
