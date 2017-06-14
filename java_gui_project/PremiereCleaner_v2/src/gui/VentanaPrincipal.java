@@ -55,6 +55,7 @@ import java.awt.GridLayout;
 import javax.swing.JList;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -141,7 +142,7 @@ public class VentanaPrincipal extends JFrame {
 	private JButton btnSeleccionarProyecto;
 	private JPanel panel_5;
 	private JTextField txPathProyecto;
-	private JButton btnBuscarMediosUtilizados;
+	private JButton btEscanearMedios;
 	private JPanel pnManagerListas;
 	private JScrollPane pnMediosUtilizados;
 	private JScrollPane pnMediosNoUtilizados;
@@ -829,6 +830,25 @@ public class VentanaPrincipal extends JFrame {
 	private JButton getBtnSeleccionarProyecto() {
 		if (btnSeleccionarProyecto == null) {
 			btnSeleccionarProyecto = new JButton("Seleccionar proyecto");
+			btnSeleccionarProyecto.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					
+					File tempFile = new File(txPathProyecto.getText().toString());
+					JFileChooser jf = null;
+					if(tempFile.exists())
+						jf = new JFileChooser(txPathProyecto.getText().toString());
+					else
+						jf = new JFileChooser(System.getProperty("user.home") + "/Desktop");
+					jf.setFileSelectionMode(JFileChooser.FILES_ONLY);
+					jf.setFileFilter(new FileNameExtensionFilter("Projectos Adobe Premiere .prproj","prproj"));
+					
+					if(jf.showOpenDialog(vp) == JFileChooser.APPROVE_OPTION){
+						txPathProyecto.setText(jf.getSelectedFile().getAbsolutePath());
+						btEscanearMedios.grabFocus();
+					}
+					
+				}
+			});
 			btnSeleccionarProyecto.setFont(new Font("Tahoma", Font.PLAIN, 13));
 		}
 		return btnSeleccionarProyecto;
@@ -837,7 +857,7 @@ public class VentanaPrincipal extends JFrame {
 		if (panel_5 == null) {
 			panel_5 = new JPanel();
 			panel_5.add(getTxPathProyecto());
-			panel_5.add(getBtnBuscarMediosUtilizados());
+			panel_5.add(getBtEscanearMedios());
 			panel_5.add(getBtnLimpiarMedios());
 		}
 		return panel_5;
@@ -852,24 +872,24 @@ public class VentanaPrincipal extends JFrame {
 		}
 		return txPathProyecto;
 	}
-	private JButton getBtnBuscarMediosUtilizados() {
-		if (btnBuscarMediosUtilizados == null) {
-			btnBuscarMediosUtilizados = new JButton("Escanear medios");
-			btnBuscarMediosUtilizados.setFont(new Font("Tahoma", Font.BOLD, 13));
-			btnBuscarMediosUtilizados.addActionListener(new ActionListener() {
+	private JButton getBtEscanearMedios() {
+		if (btEscanearMedios == null) {
+			btEscanearMedios = new JButton("Escanear medios");
+			btEscanearMedios.setFont(new Font("Tahoma", Font.BOLD, 13));
+			btEscanearMedios.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					escanearProyecto();
 				}
 			});
 		}
-		return btnBuscarMediosUtilizados;
+		return btEscanearMedios;
 	}
 	
 	private void escanearProyecto(){
 		File file = new File(txPathProyecto.getText().toString()); // ruta absoluta al proyecto
+		System.err.println(file.getParent());
 		
 		// primero escaneo archivos basura para no utilizarlos luego
-		
 		//escanearArchivos(file.getParent());
 		
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
@@ -907,9 +927,6 @@ public class VentanaPrincipal extends JFrame {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		System.err.println(file.getParent());
-		
 	}
 	
 	private JPanel getPnManagerListas() {
