@@ -48,6 +48,14 @@ import javax.swing.KeyStroke;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import javax.swing.SwingConstants;
+import javax.swing.JTabbedPane;
+import java.awt.Component;
+import java.awt.GridLayout;
+import javax.swing.JList;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.border.SoftBevelBorder;
+import javax.swing.border.BevelBorder;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -109,6 +117,29 @@ public class VentanaPrincipal extends JFrame {
 	private JButton btStop;
 	private JMenuItem mntmEcanearYLimpiar;
 	private JLabel lbVersion;
+	private JTabbedPane tabbedPane;
+	private JPanel pnCleaner;
+	private JPanel pnManager;
+	private JPanel pnManagerTop;
+	private JPanel panel_4;
+	private JLabel lblSeleccionarProyectoDe;
+	private JButton btnSeleccionarProyecto;
+	private JPanel panel_5;
+	private JTextField txtCmiproyectoprproj;
+	private JButton btnBuscarMediosUtilizados;
+	private JPanel pnManagerListas;
+	private JScrollPane pnMediosUtilizados;
+	private JScrollPane pnMediosNoUtilizados;
+	private JList listaUtilizados;
+	private JList listaNoUtilizados;
+	private JPanel pnManagerBotones;
+	private JPanel pnBotonesMediosUtilizados;
+	private JPanel pnBotonesMediosNOUtilizados;
+	private JButton btnExportarMedios;
+	private JLabel lblMediosUtilizados;
+	private JLabel lblMediosNoUtilizados;
+	private JButton btnLimpiarMedios;
+	private JButton btnExportarMedios_1;
 	
 	/**
 	 * Launch the application.
@@ -137,15 +168,14 @@ public class VentanaPrincipal extends JFrame {
 		vp = this;
 		setTitle("Premiere Pro Cleaner");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 713, 559);
+		setBounds(100, 100, 713, 648);
 		setJMenuBar(getMenuBar_1());
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
 		contentPane.add(getPanelTop(), BorderLayout.NORTH);
-		contentPane.add(getPanelCentro(), BorderLayout.CENTER);
-		contentPane.add(getPanel(), BorderLayout.SOUTH);
+		contentPane.add(getTabbedPane(), BorderLayout.CENTER);
 		
 	}
 
@@ -437,6 +467,7 @@ public class VentanaPrincipal extends JFrame {
 	private JScrollPane getScrollPane() {
 		if (scrollPane == null) {
 			scrollPane = new JScrollPane();
+			scrollPane.setBorder(null);
 			scrollPane.setViewportView(getTxAreaLog());
 			scrollPane.add(txAreaLog);
 			scrollPane.setViewportView(txAreaLog);
@@ -448,6 +479,7 @@ public class VentanaPrincipal extends JFrame {
 	private JTextArea getTxAreaLog() {
 		if (txAreaLog == null) {
 			txAreaLog = new JTextArea();
+			txAreaLog.setBorder(null);
 			txAreaLog.setEditable(false);
 		}
 		return txAreaLog;
@@ -726,5 +758,193 @@ public class VentanaPrincipal extends JFrame {
 			lbVersion = new JLabel("v1.0");
 		}
 		return lbVersion;
+	}
+	private JTabbedPane getTabbedPane() {
+		if (tabbedPane == null) {
+			tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+			tabbedPane.addTab("Gestor Proyectos", null, getPnManager(), "Para separar los medios utilizados en el proyecyo del resto de archivos");
+			tabbedPane.addTab("Limpiador Proyectos", null, getPnCleaner(), null);
+			tabbedPane.setBackgroundAt(1, Color.LIGHT_GRAY);
+		}
+		return tabbedPane;
+	}
+	private JPanel getPnCleaner() {
+		if (pnCleaner == null) {
+			pnCleaner = new JPanel();
+			pnCleaner.setLayout(new BorderLayout(0, 0));
+			pnCleaner.add(getPanelCentro(), BorderLayout.CENTER);
+			pnCleaner.add(getPanel(), BorderLayout.SOUTH);
+		}
+		return pnCleaner;
+	}
+	private JPanel getPnManager() {
+		if (pnManager == null) {
+			pnManager = new JPanel();
+			pnManager.setLayout(new BorderLayout(0, 0));
+			pnManager.add(getPnManagerTop(), BorderLayout.NORTH);
+			pnManager.add(getPnManagerListas(), BorderLayout.CENTER);
+			pnManager.add(getPnManagerBotones(), BorderLayout.SOUTH);
+		}
+		return pnManager;
+	}
+	private JPanel getPnManagerTop() {
+		if (pnManagerTop == null) {
+			pnManagerTop = new JPanel();
+			pnManagerTop.setLayout(new BorderLayout(0, 0));
+			pnManagerTop.add(getPanel_4());
+			pnManagerTop.add(getPanel_5(), BorderLayout.SOUTH);
+		}
+		return pnManagerTop;
+	}
+	private JPanel getPanel_4() {
+		if (panel_4 == null) {
+			panel_4 = new JPanel();
+			panel_4.add(getLblSeleccionarProyectoDe());
+			panel_4.add(getBtnSeleccionarProyecto());
+		}
+		return panel_4;
+	}
+	private JLabel getLblSeleccionarProyectoDe() {
+		if (lblSeleccionarProyectoDe == null) {
+			lblSeleccionarProyectoDe = new JLabel("Seleccionar proyecto de premiere (.prproj):");
+			lblSeleccionarProyectoDe.setFont(new Font("Tahoma", Font.PLAIN, 12));
+		}
+		return lblSeleccionarProyectoDe;
+	}
+	private JButton getBtnSeleccionarProyecto() {
+		if (btnSeleccionarProyecto == null) {
+			btnSeleccionarProyecto = new JButton("Seleccionar proyecto");
+			btnSeleccionarProyecto.setFont(new Font("Tahoma", Font.PLAIN, 13));
+		}
+		return btnSeleccionarProyecto;
+	}
+	private JPanel getPanel_5() {
+		if (panel_5 == null) {
+			panel_5 = new JPanel();
+			panel_5.add(getTxtCmiproyectoprproj());
+			panel_5.add(getBtnBuscarMediosUtilizados());
+			panel_5.add(getBtnLimpiarMedios());
+		}
+		return panel_5;
+	}
+	private JTextField getTxtCmiproyectoprproj() {
+		if (txtCmiproyectoprproj == null) {
+			txtCmiproyectoprproj = new JTextField();
+			txtCmiproyectoprproj.setFont(new Font("Tahoma", Font.PLAIN, 13));
+			txtCmiproyectoprproj.setText("C:\\miproyecto.prproj");
+			txtCmiproyectoprproj.setColumns(25);
+		}
+		return txtCmiproyectoprproj;
+	}
+	private JButton getBtnBuscarMediosUtilizados() {
+		if (btnBuscarMediosUtilizados == null) {
+			btnBuscarMediosUtilizados = new JButton("Escanear medios");
+			btnBuscarMediosUtilizados.setFont(new Font("Tahoma", Font.BOLD, 13));
+			btnBuscarMediosUtilizados.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+				}
+			});
+		}
+		return btnBuscarMediosUtilizados;
+	}
+	private JPanel getPnManagerListas() {
+		if (pnManagerListas == null) {
+			pnManagerListas = new JPanel();
+			pnManagerListas.setLayout(new GridLayout(1, 0, 0, 0));
+			pnManagerListas.add(getPnMediosUtilizados());
+			pnManagerListas.add(getPnMediosNoUtilizados());
+		}
+		return pnManagerListas;
+	}
+	private JScrollPane getPnMediosUtilizados() {
+		if (pnMediosUtilizados == null) {
+			pnMediosUtilizados = new JScrollPane();
+			pnMediosUtilizados.setBorder(null);
+			pnMediosUtilizados.setViewportView(listaUtilizados);
+			pnMediosUtilizados.setViewportView(getListaUtilizados());
+			pnMediosUtilizados.setColumnHeaderView(getLblMediosUtilizados());
+		}
+		return pnMediosUtilizados;
+	}
+	private JScrollPane getPnMediosNoUtilizados() {
+		if (pnMediosNoUtilizados == null) {
+			pnMediosNoUtilizados = new JScrollPane();
+			pnMediosNoUtilizados.setBorder(null);
+			pnMediosNoUtilizados.setViewportView(getListaNoUtilizados());
+			pnMediosNoUtilizados.setColumnHeaderView(getLblMediosNoUtilizados());
+		}
+		return pnMediosNoUtilizados;
+	}
+	private JList getListaUtilizados() {
+		if (listaUtilizados == null) {
+			listaUtilizados = new JList();
+			listaUtilizados.setBorder(new LineBorder(new Color(192, 192, 192)));
+		}
+		return listaUtilizados;
+	}
+	private JList getListaNoUtilizados() {
+		if (listaNoUtilizados == null) {
+			listaNoUtilizados = new JList();
+			listaNoUtilizados.setBorder(new LineBorder(new Color(192, 192, 192)));
+		}
+		return listaNoUtilizados;
+	}
+	private JPanel getPnManagerBotones() {
+		if (pnManagerBotones == null) {
+			pnManagerBotones = new JPanel();
+			pnManagerBotones.setLayout(new GridLayout(1, 0, 0, 0));
+			pnManagerBotones.add(getPnBotonesMediosUtilizados());
+			pnManagerBotones.add(getPnBotonesMediosNOUtilizados());
+		}
+		return pnManagerBotones;
+	}
+	private JPanel getPnBotonesMediosUtilizados() {
+		if (pnBotonesMediosUtilizados == null) {
+			pnBotonesMediosUtilizados = new JPanel();
+			pnBotonesMediosUtilizados.add(getBtnExportarMedios());
+		}
+		return pnBotonesMediosUtilizados;
+	}
+	private JPanel getPnBotonesMediosNOUtilizados() {
+		if (pnBotonesMediosNOUtilizados == null) {
+			pnBotonesMediosNOUtilizados = new JPanel();
+			pnBotonesMediosNOUtilizados.add(getBtnExportarMedios_1());
+		}
+		return pnBotonesMediosNOUtilizados;
+	}
+	private JButton getBtnExportarMedios() {
+		if (btnExportarMedios == null) {
+			btnExportarMedios = new JButton("Exportar medios");
+		}
+		return btnExportarMedios;
+	}
+	private JLabel getLblMediosUtilizados() {
+		if (lblMediosUtilizados == null) {
+			lblMediosUtilizados = new JLabel(" Medios utilizados:");
+			lblMediosUtilizados.setForeground(new Color(0, 128, 0));
+			lblMediosUtilizados.setFont(new Font("Tahoma", Font.PLAIN, 12));
+		}
+		return lblMediosUtilizados;
+	}
+	private JLabel getLblMediosNoUtilizados() {
+		if (lblMediosNoUtilizados == null) {
+			lblMediosNoUtilizados = new JLabel(" Medios NO utilizados:");
+			lblMediosNoUtilizados.setFont(new Font("Tahoma", Font.PLAIN, 12));
+			lblMediosNoUtilizados.setForeground(new Color(220, 20, 60));
+		}
+		return lblMediosNoUtilizados;
+	}
+	private JButton getBtnLimpiarMedios() {
+		if (btnLimpiarMedios == null) {
+			btnLimpiarMedios = new JButton("Limpiar listas");
+			btnLimpiarMedios.setFont(new Font("Tahoma", Font.PLAIN, 12));
+		}
+		return btnLimpiarMedios;
+	}
+	private JButton getBtnExportarMedios_1() {
+		if (btnExportarMedios_1 == null) {
+			btnExportarMedios_1 = new JButton("Exportar medios no utilizados");
+		}
+		return btnExportarMedios_1;
 	}
 }
