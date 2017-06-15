@@ -144,6 +144,7 @@ public class VentanaPrincipal extends JFrame {
 	
 	private MyThread hiloEjecucion = null;
 	private Thread hiloEliminacion = null;
+	private Thread thread1 = null;
 	
 	private JButton btStop;
 	private JMenuItem mntmEcanearYLimpiar;
@@ -173,6 +174,11 @@ public class VentanaPrincipal extends JFrame {
 	private JButton btnBorrar;
 	private JRadioButton rdbtnMediosUtilizados;
 	private JRadioButton rdbtnMediosNoUtilizados;
+	private JPanel panel_6;
+	private JPanel pnTiempoGestor;
+	private JLabel lblTiempoMs;
+	private JProgressBar progressbarGestor;
+	private JButton btnStop;
 	
 	/**
 	 * Launch the application.
@@ -685,6 +691,8 @@ public class VentanaPrincipal extends JFrame {
 	private void resetProgress(){
 		progressBar.setValue(0);
 		progressBar.setString("0%");
+		progressbarGestor.setValue(0);
+		progressbarGestor.setString("0%");
 	}
 	private JPanel getPanel() {
 		if (panel == null) {
@@ -988,8 +996,16 @@ public class VentanaPrincipal extends JFrame {
 		
 		escanearMediosNoUtilizados(file.getParent());
 		
-		lblMediosUtilizados.setText(" Medios utilizados ("+listaMediosUtilizados.size()+" archivos):");
-		lblMediosNoUtilizados.setText(" Medios NO utilizados ("+listaMediosNoUtilizados.size()+ " archivos):");
+		long sizeUtilizados = 0;
+		for (File file2 : listaMediosUtilizados) {
+			sizeUtilizados += Math.abs(file2.length());
+		}
+		long sizeNOUtilizados = 0;
+		for (File file2 : listaMediosNoUtilizados) {
+			sizeNOUtilizados += file2.length();
+		}
+		lblMediosUtilizados.setText(" Medios utilizados ("+listaMediosUtilizados.size()+" archivos = "+sizeUtilizados/1000000000.0+" GB):");
+		lblMediosNoUtilizados.setText(" Medios NO utilizados ("+listaMediosNoUtilizados.size()+ " archivos = "+sizeNOUtilizados/1000000000.0+" GB):");
 	}
 	
 	
@@ -1080,8 +1096,9 @@ public class VentanaPrincipal extends JFrame {
 	private JPanel getPnManagerBotones() {
 		if (pnManagerBotones == null) {
 			pnManagerBotones = new JPanel();
-			pnManagerBotones.setLayout(new GridLayout(1, 0, 0, 0));
+			pnManagerBotones.setLayout(new BorderLayout(0, 0));
 			pnManagerBotones.add(getPnBotonesMediosNOUtilizados());
+			pnManagerBotones.add(getPanel_6(), BorderLayout.SOUTH);
 		}
 		return pnManagerBotones;
 	}
@@ -1096,6 +1113,7 @@ public class VentanaPrincipal extends JFrame {
 			pnBotonesMediosNOUtilizados.add(getBtMover());
 			pnBotonesMediosNOUtilizados.add(getBtnCopiar());
 			pnBotonesMediosNOUtilizados.add(getBtnBorrar());
+			pnBotonesMediosNOUtilizados.add(getBtnStop());
 		}
 		return pnBotonesMediosNOUtilizados;
 	}
@@ -1148,29 +1166,50 @@ public class VentanaPrincipal extends JFrame {
 			btnCopiar = new JButton("Copiar");
 			btnCopiar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
+					
 					File origen = new File(txPathProyecto.getText());
 					JFileChooser jf = new JFileChooser(origen.getParent());
 					jf.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 					if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
-						// primero clono estructura de carpetas sin ficheros
-						clonarCarpetas(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
-						
-						// copio antiguos en nuevos
-						for (File file : listaMediosNoUtilizados) {
-							String rutaPadreActual = file.getAbsolutePath();
-							String nuevaRuta = rutaPadreActual.replace(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
-							Path pathorigen = Paths.get(rutaPadreActual);
-							Path pathdestino = Paths.get(nuevaRuta);
-							System.out.println("origen: " + pathorigen.toString());
-							System.err.println("destino: " + pathdestino.toString());
+						thread1 = new Thread(){
+							public void run() {
+								long t1 = System.currentTimeMillis();
+								progressbarGestor.setMaximum(listaMediosNoUtilizados.size());
+		
+								// primero clono estructura de carpetas sin ficheros
+								clonarCarpetas(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
+								
+								// copio antiguos en nuevos
+								for (File file : listaMediosNoUtilizados) {
+									if(!file.getAbsolutePath().equals(txPathProyecto.getText())){
+										progressbarGestor.setValue(progressbarGestor.getValue()+1);
+										progressbarGestor.setString("Copiando... " + file.getAbsolutePath());
+										progressbarGestor.repaint();
+										String rutaPadreActual = file.getAbsolutePath();
+										String nuevaRuta = rutaPadreActual.replace(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
+										Path pathorigen = Paths.get(rutaPadreActual);
+										Path pathdestino = Paths.get(nuevaRuta);
+										System.out.println("origen: " + pathorigen.toString());
+										System.err.println("destino: " + pathdestino.toString());
+										
+										try {
+											Files.copy(pathorigen, pathdestino, REPLACE_EXISTING);
+										} catch (IOException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										}
+									}
+								}
+								progressbarGestor.setString("100%");
+								progressbarGestor.setValue(progressbarGestor.getMaximum());
+								long t2 =  System.currentTimeMillis();
+								lblTiempoMs.setText("Tiempo: "+(t2-t1)+" ms");
+							};
 							
-							try {
-								Files.copy(pathorigen, pathdestino, REPLACE_EXISTING);
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						}
+						};
+						btnStop.setEnabled(true);
+						btnStop.setForeground(Color.RED);
+						thread1.start();
 					}
 					
 				}
@@ -1227,4 +1266,65 @@ public class VentanaPrincipal extends JFrame {
             }
         }
     }   
+	private JPanel getPanel_6() {
+		if (panel_6 == null) {
+			panel_6 = new JPanel();
+			GridBagLayout gbl_panel_6 = new GridBagLayout();
+			gbl_panel_6.columnWidths = new int[]{114, 146, 0};
+			gbl_panel_6.rowHeights = new int[]{24, 0};
+			gbl_panel_6.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
+			gbl_panel_6.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+			panel_6.setLayout(gbl_panel_6);
+			GridBagConstraints gbc_pnTiempoGestor = new GridBagConstraints();
+			gbc_pnTiempoGestor.fill = GridBagConstraints.HORIZONTAL;
+			gbc_pnTiempoGestor.anchor = GridBagConstraints.NORTHWEST;
+			gbc_pnTiempoGestor.insets = new Insets(0, 0, 0, 5);
+			gbc_pnTiempoGestor.gridx = 0;
+			gbc_pnTiempoGestor.gridy = 0;
+			panel_6.add(getPnTiempoGestor(), gbc_pnTiempoGestor);
+			GridBagConstraints gbc_progressbarGestor = new GridBagConstraints();
+			gbc_progressbarGestor.fill = GridBagConstraints.HORIZONTAL;
+			gbc_progressbarGestor.anchor = GridBagConstraints.WEST;
+			gbc_progressbarGestor.gridx = 1;
+			gbc_progressbarGestor.gridy = 0;
+			panel_6.add(getProgressbarGestor(), gbc_progressbarGestor);
+		}
+		return panel_6;
+	}
+	private JPanel getPnTiempoGestor() {
+		if (pnTiempoGestor == null) {
+			pnTiempoGestor = new JPanel();
+			pnTiempoGestor.add(getLblTiempoMs());
+		}
+		return pnTiempoGestor;
+	}
+	private JLabel getLblTiempoMs() {
+		if (lblTiempoMs == null) {
+			lblTiempoMs = new JLabel("");
+		}
+		return lblTiempoMs;
+	}
+	private JProgressBar getProgressbarGestor() {
+		if (progressbarGestor == null) {
+			progressbarGestor = new JProgressBar();
+			progressbarGestor.setStringPainted(true);
+		}
+		return progressbarGestor;
+	}
+	private JButton getBtnStop() {
+		if (btnStop == null) {
+			btnStop = new JButton("Stop");
+			btnStop.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					thread1.stop();
+					btnStop.setEnabled(false);
+					btnStop.setForeground(Color.LIGHT_GRAY);
+					resetProgress();
+				}
+			});
+			btnStop.setEnabled(false);
+			btnStop.setForeground(Color.LIGHT_GRAY);
+		}
+		return btnStop;
+	}
 }
