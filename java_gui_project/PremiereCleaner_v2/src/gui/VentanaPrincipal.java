@@ -185,6 +185,7 @@ public class VentanaPrincipal extends JFrame {
 	private JLabel lblTiempoMs;
 	private JProgressBar progressbarGestor;
 	private JButton btnStop;
+	private JCheckBoxMenuItem chckbxmntmEliminarCarpetasVacas;
 	
 	/**
 	 * Launch the application.
@@ -319,6 +320,8 @@ public class VentanaPrincipal extends JFrame {
 						public void run() {
 							escanear();
 							eliminarArchivos();
+							if(chckbxmntmEliminarCarpetasVacas.isSelected())
+								eliminarCarpetasVacias(txPathSeleccionado.getText());
 						};
 					};
 					hiloEliminacion.start();
@@ -623,6 +626,7 @@ public class VentanaPrincipal extends JFrame {
 			mnOpciones = new JMenu("Opciones");
 			mnOpciones.setMnemonic('o');
 			mnOpciones.add(getChckbxmntmMostrarRutaCompleta());
+			mnOpciones.add(getChckbxmntmEliminarCarpetasVacas());
 		}
 		return mnOpciones;
 	}
@@ -917,11 +921,15 @@ public class VentanaPrincipal extends JFrame {
 			btEscanearMedios.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					resetData();
+					resetProgress();
 					modeloListaNoUtilizados.clear();
 					modeloListaUtilizados.clear();
 					
 					String txLogAntes = txAreaLog.getText();
+					long t1 = System.currentTimeMillis();
 					escanearProyecto();
+					long t2 = System.currentTimeMillis();
+					lblTiempoMs.setText("Escaneado en "+(t2-t1)+" ms");
 					txAreaLog.setText(txLogAntes);
 					
 					if(listaMediosUtilizados.size()==0)
@@ -929,7 +937,7 @@ public class VentanaPrincipal extends JFrame {
 
 					actualizarBotones();
 					
-					resetProgress();
+					
 				}
 			});
 		}
@@ -971,6 +979,10 @@ public class VentanaPrincipal extends JFrame {
 			documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			Document document = documentBuilder.parse(file);
 			NodeList lista = document.getElementsByTagName("ActualMediaFilePath");
+			
+			progressbarGestor.setEnabled(true);
+			
+			
 			for(int i = 0; i<lista.getLength();i++){
 				String ruta = lista.item(i).getTextContent();
 				if(!ruta.startsWith("1")){
@@ -979,6 +991,9 @@ public class VentanaPrincipal extends JFrame {
 					}
 					File f = new File(ruta);
 					if(f.exists()){
+						progressbarGestor.setString(f.getAbsolutePath());
+						progressbarGestor.setValue(progressbarGestor.getValue()+1);
+						progressbarGestor.repaint();
 						contadorUtilizados +=1;
 //						System.out.println(f.getAbsolutePath() + ", file: " + contadorUtilizados);
 						modeloListaUtilizados.addElement(f);
@@ -1006,6 +1021,8 @@ public class VentanaPrincipal extends JFrame {
 		
 		escanearMediosNoUtilizados(file.getParent());
 		
+		progressbarGestor.setString("100%");
+		progressbarGestor.setValue(progressbarGestor.getMaximum());
 		long sizeUtilizados = 0;
 		for (File file2 : listaMediosUtilizados) {
 			sizeUtilizados += Math.abs(file2.length());
@@ -1239,7 +1256,7 @@ public class VentanaPrincipal extends JFrame {
 						// primero clono estructura de carpetas sin ficheros
 						if(opcion == 1 || opcion == 2){
 							clonarCarpetas(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
-							if(opcion == 1)
+							if(chckbxmntmEliminarCarpetasVacas.isSelected())
 								eliminarCarpetasVacias(jf.getSelectedFile().getAbsolutePath());
 						}
 						
@@ -1357,13 +1374,15 @@ public class VentanaPrincipal extends JFrame {
 	
 	public static void eliminarCarpetasVacias(String path){
 		 for (File f : new File(path).listFiles()) {
-			 eliminarCarpetasVacias(f.getAbsolutePath());
-			 if(f.listFiles().length == 0){
-				try {
-					Files.delete(f.toPath());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+			 if(f.exists() && f.isDirectory()){
+				 eliminarCarpetasVacias(f.getAbsolutePath());
+				 if(f.listFiles().length == 0){
+					try {
+						Files.delete(f.toPath());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 		 }
@@ -1444,9 +1463,18 @@ public class VentanaPrincipal extends JFrame {
 	            boolean isSelected, boolean cellHasFocus) {
 
 	        String relative = ((File) value).toPath().toString();
-	        relative = relative.replace(pathProject, "");
+	        if(!chckbxmntmMostrarRutaCompleta.isSelected())
+	        	relative = relative.replace(pathProject, "");
 
 	        return super.getListCellRendererComponent(list, relative, index, isSelected, cellHasFocus);
 	    }
     }
+	private JCheckBoxMenuItem getChckbxmntmEliminarCarpetasVacas() {
+		if (chckbxmntmEliminarCarpetasVacas == null) {
+			chckbxmntmEliminarCarpetasVacas = new JCheckBoxMenuItem("Eliminar carpetas vac\u00EDas al limpiar");
+			chckbxmntmEliminarCarpetasVacas.setMnemonic('v');
+			chckbxmntmEliminarCarpetasVacas.setSelected(true);
+		}
+		return chckbxmntmEliminarCarpetasVacas;
+	}
 }
