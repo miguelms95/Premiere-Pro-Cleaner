@@ -1168,58 +1168,7 @@ public class VentanaPrincipal extends JFrame {
 			btnCopiar = new JButton("Copiar");
 			btnCopiar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					
-					File origen = new File(txPathProyecto.getText());
-					JFileChooser jf = new JFileChooser(origen.getParent());
-					jf.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-					if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
-						thread1 = new Thread(){
-							public void run() {
-								long t1 = System.currentTimeMillis();
-								progressbarGestor.setMaximum(listaMediosNoUtilizados.size());
-		
-								// primero clono estructura de carpetas sin ficheros
-								clonarCarpetas(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
-								
-								// copio antiguos en nuevos
-								ArrayList<File> lista = null;
-								if(rdbtnMediosNoUtilizados.isSelected())
-									lista = listaMediosNoUtilizados;
-								else
-									lista = listaMediosUtilizados;
-								
-								for (File file : lista) {
-									if(!file.getAbsolutePath().equals(txPathProyecto.getText())){
-										progressbarGestor.setValue(progressbarGestor.getValue()+1);
-										progressbarGestor.setString("Copiando... " + file.getAbsolutePath());
-										progressbarGestor.repaint();
-										String rutaPadreActual = file.getAbsolutePath();
-										String nuevaRuta = rutaPadreActual.replace(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
-										Path pathorigen = Paths.get(rutaPadreActual);
-										Path pathdestino = Paths.get(nuevaRuta);
-//										System.out.println("origen: " + pathorigen.toString());
-//										System.err.println("destino: " + pathdestino.toString());
-										
-										try {
-											Files.copy(pathorigen, pathdestino, REPLACE_EXISTING);
-										} catch (IOException e) {
-											// TODO Auto-generated catch block
-											e.printStackTrace();
-										}
-									}
-								}
-								progressbarGestor.setString("100%");
-								progressbarGestor.setValue(progressbarGestor.getMaximum());
-								long t2 =  System.currentTimeMillis();
-								lblTiempoMs.setText("Tiempo: "+(t2-t1)+" ms");
-							};
-							
-						};
-						btnStop.setEnabled(true);
-						btnStop.setForeground(Color.RED);
-						thread1.start();
-					}
-					
+					ejecucionMedios(2);
 				}
 			});
 			btnCopiar.setEnabled(false);
@@ -1227,6 +1176,74 @@ public class VentanaPrincipal extends JFrame {
 		}
 		return btnCopiar;
 	}
+	
+	/**
+	 * @param opcion 1 =  Mover, 2 = Copiar, 3 = Borrar
+	 */
+	private void ejecucionMedios(int opcion){
+		File origen = new File(txPathProyecto.getText());
+		JFileChooser jf = new JFileChooser(origen.getParent());
+		jf.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
+			thread1 = new Thread(){
+				public void run() {
+					long t1 = System.currentTimeMillis();
+					progressbarGestor.setMaximum(listaMediosNoUtilizados.size());
+					
+					
+					// primero clono estructura de carpetas sin ficheros
+					if(opcion == 1 || opcion == 2)
+						clonarCarpetas(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
+					
+					// selecciono lista a tratar
+					ArrayList<File> lista = null;
+					if(rdbtnMediosNoUtilizados.isSelected())
+						lista = listaMediosNoUtilizados;
+					else
+						lista = listaMediosUtilizados;
+					
+					
+					for (File file : lista) {
+						if(!file.getAbsolutePath().equals(txPathProyecto.getText())){
+							progressbarGestor.setValue(progressbarGestor.getValue()+1);
+							String textoOperacion = "";
+							if(opcion==1)
+								textoOperacion = "Moviendo";
+							else if(opcion==2)
+								textoOperacion = "Copiando";
+							else
+								textoOperacion = "Borrando";
+							
+							progressbarGestor.setString(textoOperacion + "... " + file.getAbsolutePath());
+							progressbarGestor.repaint();
+							String rutaPadreActual = file.getAbsolutePath();
+							String nuevaRuta = rutaPadreActual.replace(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
+							Path pathorigen = Paths.get(rutaPadreActual);
+							Path pathdestino = Paths.get(nuevaRuta);
+//							System.out.println("origen: " + pathorigen.toString());
+//							System.err.println("destino: " + pathdestino.toString());
+							
+							try {
+								Files.copy(pathorigen, pathdestino, REPLACE_EXISTING);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+					}
+					progressbarGestor.setString("100%");
+					progressbarGestor.setValue(progressbarGestor.getMaximum());
+					long t2 =  System.currentTimeMillis();
+					lblTiempoMs.setText("Tiempo: "+(t2-t1)+" ms");
+				};
+				
+			};
+			btnStop.setEnabled(true);
+			btnStop.setForeground(Color.RED);
+			thread1.start();
+		}
+	}
+	
 	private JButton getBtnBorrar() {
 		if (btnBorrar == null) {
 			btnBorrar = new JButton("Borrar");
