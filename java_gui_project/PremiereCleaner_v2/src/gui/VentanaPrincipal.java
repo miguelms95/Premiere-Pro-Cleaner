@@ -453,6 +453,7 @@ public class VentanaPrincipal extends JFrame {
 		
 		if(jf.showOpenDialog(vp) == JFileChooser.APPROVE_OPTION){
 			txPathSeleccionado.setText(jf.getSelectedFile().getAbsolutePath());
+			txPathProyecto.setText(jf.getSelectedFile().getAbsolutePath());
 			btEjecutar.setFont(new Font("Tahoma", Font.BOLD, 12));
 			btEjecutar.setEnabled(true);
 			btEjecutar.setForeground(Color.BLACK);
@@ -909,6 +910,7 @@ public class VentanaPrincipal extends JFrame {
 		
 		if(jf.showOpenDialog(vp) == JFileChooser.APPROVE_OPTION){
 			txPathProyecto.setText(jf.getSelectedFile().getAbsolutePath());
+			txPathSeleccionado.setText(jf.getSelectedFile().getParentFile().getAbsolutePath());
 			//txPathProyecto.repaint();
 			
 			pathProject =  new File(txPathProyecto.getText().toString()).getParent().toString();
@@ -1014,6 +1016,8 @@ public class VentanaPrincipal extends JFrame {
 	
 	private void escanearProyecto(){
 		File file = new File(txPathProyecto.getText().toString()); // ruta absoluta al proyecto
+		
+		limpiarListas();
 		
 		// PRIMERO escaneo los medios utilizados
 		
@@ -1297,82 +1301,75 @@ public class VentanaPrincipal extends JFrame {
 			}
 			JOptionPane confirm = new JOptionPane(txPopup, JOptionPane.QUESTION_MESSAGE);
 			if(JOptionPane.showConfirmDialog(vp, txPopup,"Confirma operación",JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
-				thread1 = new Thread(){
-					public void run() {
-						long t1 = System.currentTimeMillis();
-						progressbarGestor.setMaximum(listaMediosNoUtilizados.size());
-						
-						
-						// primero clono estructura de carpetas sin ficheros
-						if(opcion == 1 || opcion == 2){
-							clonarCarpetas(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
-						}
-						if(chckbxmntmEliminarCarpetasVacas.isSelected())
-							eliminarCarpetasVacias(pathProject);
-						
-						// selecciono lista a tratar
-						ArrayList<File> lista = null;
-						if(rdbtnMediosNoUtilizados.isSelected())
-							lista = listaMediosNoUtilizados;
+				long t1 = System.currentTimeMillis();
+				progressbarGestor.setMaximum(listaMediosNoUtilizados.size());
+				
+				
+				// primero clono estructura de carpetas sin ficheros
+				if(opcion == 1 || opcion == 2){
+					clonarCarpetas(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
+				}
+				
+				// selecciono lista a tratar
+				ArrayList<File> lista = null;
+				if(rdbtnMediosNoUtilizados.isSelected())
+					lista = listaMediosNoUtilizados;
+				else
+					lista = listaMediosUtilizados;
+				
+				
+				for (File file : lista) {
+					if(!file.getAbsolutePath().equals(txPathProyecto.getText())){
+						String textoOperacion = "";
+						if(opcion==1)
+							textoOperacion = "Moviendo";
+						else if(opcion==2)
+							textoOperacion = "Copiando";
 						else
-							lista = listaMediosUtilizados;
+							textoOperacion = "Borrando";
 						
+						progressbarGestor.setValue(progressbarGestor.getValue()+1);
+						progressbarGestor.setString(textoOperacion + "... " + file.getAbsolutePath());
+						progressbarGestor.repaint();
+						try{
+							if(opcion == 1 || opcion == 2){
+								String rutaPadreActual = file.getAbsolutePath();
+								String nuevaRuta = rutaPadreActual.replace(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
+								Path pathorigen = Paths.get(rutaPadreActual);
+								Path pathdestino = Paths.get(nuevaRuta);
+							
+							
+//							System.out.println("origen: " + pathorigen.toString());
+//							System.err.println("destino: " + pathdestino.toString());
 						
-						for (File file : lista) {
-							if(!file.getAbsolutePath().equals(txPathProyecto.getText())){
-								String textoOperacion = "";
-								if(opcion==1)
-									textoOperacion = "Moviendo";
+								if(opcion == 1)
+									Files.move(pathorigen, pathdestino, REPLACE_EXISTING);
 								else if(opcion==2)
-									textoOperacion = "Copiando";
-								else
-									textoOperacion = "Borrando";
-								
-								progressbarGestor.setValue(progressbarGestor.getValue()+1);
-								progressbarGestor.setString(textoOperacion + "... " + file.getAbsolutePath());
-								progressbarGestor.repaint();
-								try{
-									if(opcion == 1 || opcion == 2){
-										String rutaPadreActual = file.getAbsolutePath();
-										String nuevaRuta = rutaPadreActual.replace(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
-										Path pathorigen = Paths.get(rutaPadreActual);
-										Path pathdestino = Paths.get(nuevaRuta);
-									
-									
-		//							System.out.println("origen: " + pathorigen.toString());
-		//							System.err.println("destino: " + pathdestino.toString());
-								
-										if(opcion == 1)
-											Files.move(pathorigen, pathdestino, REPLACE_EXISTING);
-										else if(opcion==2)
-											Files.copy(pathorigen, pathdestino, REPLACE_EXISTING);
-									}else if(opcion == 3){
-										Files.delete(Paths.get(file.getAbsolutePath()));
-									}
-								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
+									Files.copy(pathorigen, pathdestino, REPLACE_EXISTING);
+							}else if(opcion == 3){
+								Files.delete(Paths.get(file.getAbsolutePath()));
 							}
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
-						// vuelvo a limpiar carpetas por si alguna queda vacía tras el borrado
-						if(chckbxmntmEliminarCarpetasVacas.isSelected())
-							eliminarCarpetasVacias(pathProject);
-						
-						progressbarGestor.setString("100%");
-						progressbarGestor.setValue(progressbarGestor.getMaximum());
-						long t2 =  System.currentTimeMillis();
-						lblTiempoMs.setText("Tiempo: "+(t2-t1)+" ms");
-						JOptionPane.showMessageDialog(vp, "Operación finalizada con éxito.\nDuración: "+(t2-t1)+" milisegundos", "Premiere Cleaner: Operación finalizada", JOptionPane.INFORMATION_MESSAGE);
-						
-						// Re-escaneo el proyecto para que se actualicen las listas tras el borrado/copia/movimiento
-						escanearProyecto();
-					};
-					
-				};
+					}
+				}
+				// vuelvo a limpiar carpetas por si alguna queda vacía tras el borrado
+				if(chckbxmntmEliminarCarpetasVacas.isSelected())
+					eliminarCarpetasVacias(pathProject);
+				
+				progressbarGestor.setString("100%");
+				progressbarGestor.setValue(progressbarGestor.getMaximum());
+				long t2 =  System.currentTimeMillis();
+				lblTiempoMs.setText("Tiempo: "+(t2-t1)+" ms");
+				JOptionPane.showMessageDialog(vp, "Operación finalizada con éxito.\nDuración: "+(t2-t1)+" milisegundos", "Premiere Cleaner: Operación finalizada", JOptionPane.INFORMATION_MESSAGE);
+				
+				// Re-escaneo el proyecto para que se actualicen las listas tras el borrado/copia/movimiento
+				escanearProyecto();
+				
 				btnStop.setEnabled(true);
 				btnStop.setForeground(Color.RED);
-				thread1.start();
 			}
 		}
 	}
