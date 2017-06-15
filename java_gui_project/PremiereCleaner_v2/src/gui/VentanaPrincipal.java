@@ -21,6 +21,10 @@ import javax.swing.JFileChooser;
 import javax.swing.JTextArea;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import javax.swing.JTextField;
@@ -55,6 +59,7 @@ import java.awt.GridLayout;
 import javax.swing.JList;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -68,7 +73,11 @@ import org.xml.sax.SAXException;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.border.BevelBorder;
 import javax.swing.AbstractListModel;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
+import javax.swing.JRadioButton;
+import static java.nio.file.StandardCopyOption.*;
+
 
 public class VentanaPrincipal extends JFrame {
 
@@ -155,13 +164,15 @@ public class VentanaPrincipal extends JFrame {
 	private JList listaUtilizados;
 	private JList listaNoUtilizados;
 	private JPanel pnManagerBotones;
-	private JPanel pnBotonesMediosUtilizados;
 	private JPanel pnBotonesMediosNOUtilizados;
-	private JButton btnExportarMedios;
 	private JLabel lblMediosUtilizados;
 	private JLabel lblMediosNoUtilizados;
 	private JButton btnLimpiarMedios;
-	private JButton btnExportarMedios_1;
+	private JButton btMover;
+	private JButton btnCopiar;
+	private JButton btnBorrar;
+	private JRadioButton rdbtnMediosUtilizados;
+	private JRadioButton rdbtnMediosNoUtilizados;
 	
 	/**
 	 * Launch the application.
@@ -190,7 +201,7 @@ public class VentanaPrincipal extends JFrame {
 		vp = this;
 		setTitle("Premiere Pro Cleaner");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 882, 758);
+		setBounds(100, 100, 882, 700);
 		setJMenuBar(getMenuBar_1());
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -299,6 +310,7 @@ public class VentanaPrincipal extends JFrame {
 						};
 					};
 					hiloEliminacion.start();
+					resetData();
 				}
 			});
 			btEjecutar.setFont(new Font("Tahoma", Font.PLAIN, 13));
@@ -469,7 +481,7 @@ public class VentanaPrincipal extends JFrame {
 	 * @param accion
 	 */
 	private void printStats(String accion){
-		int tamTotal = tamAVI + tamPEK +tamCFA;
+		int tamTotal = Math.abs(tamAVI) + Math.abs(tamPEK) +Math.abs(tamCFA);
 		
 //		System.out.println("#### RESUMEN ARCHIVOS "+accion+" ###");
 //		System.out.println(contadorDirectoriosPRV + " directorios temporales encontrados");
@@ -790,7 +802,7 @@ public class VentanaPrincipal extends JFrame {
 		if (tabbedPane == null) {
 			tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 			tabbedPane.addTab("Gestor Proyectos", null, getPnManager(), "Para separar los medios utilizados en el proyecyo del resto de archivos");
-			tabbedPane.addTab("Limpiador Proyectos", null, getPnCleaner(), null);
+			tabbedPane.addTab("Limpiador previsualizaciones", null, getPnCleaner(), null);
 			tabbedPane.setBackgroundAt(1, Color.LIGHT_GRAY);
 		}
 		return tabbedPane;
@@ -889,18 +901,44 @@ public class VentanaPrincipal extends JFrame {
 			btEscanearMedios.setFont(new Font("Tahoma", Font.BOLD, 13));
 			btEscanearMedios.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
+					resetData();
 					modeloListaNoUtilizados.clear();
 					modeloListaUtilizados.clear();
 					
 					String txLogAntes = txAreaLog.getText();
 					escanearProyecto();
 					txAreaLog.setText(txLogAntes);
-					resetData();
+					
+					if(listaMediosUtilizados.size()==0)
+						JOptionPane.showMessageDialog(vp, "Se han encontrado 0 archivos en el proyecto.\nAbre el proyecto de premiere y comprueba que los medios están localizados","Atención: localiza los medios del proyecto",JOptionPane.WARNING_MESSAGE);
+
+					actualizarBotones();
+					
 					resetProgress();
 				}
 			});
 		}
 		return btEscanearMedios;
+	}
+	private void actualizarBotones(){
+		if(listaMediosUtilizados.size() == 0 || listaMediosNoUtilizados.size() == 0){
+			btMover.setEnabled(false);
+			btnCopiar.setEnabled(false);
+			btnBorrar.setEnabled(false);
+		}else{
+			btMover.setEnabled(true);
+			btnCopiar.setEnabled(true);
+			btnBorrar.setEnabled(true);
+		}
+		if(listaMediosUtilizados.size()==0)
+			rdbtnMediosUtilizados.setEnabled(false);
+		else
+			rdbtnMediosUtilizados.setEnabled(true);
+		
+		if(listaMediosNoUtilizados.size()==0)
+			rdbtnMediosNoUtilizados.setEnabled(false);
+		else
+			rdbtnMediosNoUtilizados.setEnabled(true);
 	}
 	
 	private void escanearProyecto(){
@@ -930,7 +968,6 @@ public class VentanaPrincipal extends JFrame {
 					}
 				}
 			}
-			lblMediosUtilizados.setText(" Medios utilizados ("+listaMediosUtilizados.size()+" archivos):");
 			
 		} catch (ParserConfigurationException e) {
 			// TODO Auto-generated catch block
@@ -950,7 +987,9 @@ public class VentanaPrincipal extends JFrame {
 		// en "listaArchivos" tengo toda la basura
 		
 		escanearMediosNoUtilizados(file.getParent());
-		lblMediosNoUtilizados.setText(" Medios NO utilizados ("+listaMediosNoUtilizados.size()+ " archivos)");
+		
+		lblMediosUtilizados.setText(" Medios utilizados ("+listaMediosUtilizados.size()+" archivos):");
+		lblMediosNoUtilizados.setText(" Medios NO utilizados ("+listaMediosNoUtilizados.size()+ " archivos):");
 	}
 	
 	
@@ -1042,30 +1081,23 @@ public class VentanaPrincipal extends JFrame {
 		if (pnManagerBotones == null) {
 			pnManagerBotones = new JPanel();
 			pnManagerBotones.setLayout(new GridLayout(1, 0, 0, 0));
-			pnManagerBotones.add(getPnBotonesMediosUtilizados());
 			pnManagerBotones.add(getPnBotonesMediosNOUtilizados());
 		}
 		return pnManagerBotones;
 	}
-	private JPanel getPnBotonesMediosUtilizados() {
-		if (pnBotonesMediosUtilizados == null) {
-			pnBotonesMediosUtilizados = new JPanel();
-			pnBotonesMediosUtilizados.add(getBtnExportarMedios());
-		}
-		return pnBotonesMediosUtilizados;
-	}
 	private JPanel getPnBotonesMediosNOUtilizados() {
 		if (pnBotonesMediosNOUtilizados == null) {
 			pnBotonesMediosNOUtilizados = new JPanel();
-			pnBotonesMediosNOUtilizados.add(getBtnExportarMedios_1());
+			pnBotonesMediosNOUtilizados.add(getRdbtnMediosUtilizados());
+			pnBotonesMediosNOUtilizados.add(getRdbtnMediosNoUtilizados());
+			ButtonGroup bg = new ButtonGroup();
+			bg.add(rdbtnMediosNoUtilizados);
+			bg.add(rdbtnMediosUtilizados);
+			pnBotonesMediosNOUtilizados.add(getBtMover());
+			pnBotonesMediosNOUtilizados.add(getBtnCopiar());
+			pnBotonesMediosNOUtilizados.add(getBtnBorrar());
 		}
 		return pnBotonesMediosNOUtilizados;
-	}
-	private JButton getBtnExportarMedios() {
-		if (btnExportarMedios == null) {
-			btnExportarMedios = new JButton("Exportar medios");
-		}
-		return btnExportarMedios;
 	}
 	private JLabel getLblMediosUtilizados() {
 		if (lblMediosUtilizados == null) {
@@ -1086,14 +1118,113 @@ public class VentanaPrincipal extends JFrame {
 	private JButton getBtnLimpiarMedios() {
 		if (btnLimpiarMedios == null) {
 			btnLimpiarMedios = new JButton("Limpiar listas");
+			btnLimpiarMedios.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					modeloListaNoUtilizados.clear();
+					modeloListaUtilizados.clear();
+					listaMediosNoUtilizados.clear();
+					listaMediosUtilizados.clear();
+					resetData();
+					
+					lblMediosUtilizados.setText(" Medios utilizados:");
+					lblMediosNoUtilizados.setText(" Medios NO utilizados:");
+					actualizarBotones();
+				}
+			});
 			btnLimpiarMedios.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		}
 		return btnLimpiarMedios;
 	}
-	private JButton getBtnExportarMedios_1() {
-		if (btnExportarMedios_1 == null) {
-			btnExportarMedios_1 = new JButton("Exportar medios no utilizados");
+	private JButton getBtMover() {
+		if (btMover == null) {
+			btMover = new JButton("Mover");
+			btMover.setEnabled(false);
+			btMover.setFont(new Font("Tahoma", Font.PLAIN, 13));
 		}
-		return btnExportarMedios_1;
+		return btMover;
 	}
+	private JButton getBtnCopiar() {
+		if (btnCopiar == null) {
+			btnCopiar = new JButton("Copiar");
+			btnCopiar.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					File origen = new File(txPathProyecto.getText());
+					JFileChooser jf = new JFileChooser(origen.getParent());
+					jf.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+					if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
+						// primero clono estructura de carpetas sin ficheros
+						clonarCarpetas(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
+						
+						// copio antiguos en nuevos
+						for (File file : listaMediosNoUtilizados) {
+							String rutaPadreActual = file.getAbsolutePath();
+							String nuevaRuta = rutaPadreActual.replace(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
+							Path pathorigen = Paths.get(rutaPadreActual);
+							Path pathdestino = Paths.get(nuevaRuta);
+							System.out.println("origen: " + pathorigen.toString());
+							System.err.println("destino: " + pathdestino.toString());
+							
+//							try {
+//								Files.copy(pathorigen, pathdestino, REPLACE_EXISTING);
+//							} catch (IOException e) {
+//								// TODO Auto-generated catch block
+//								e.printStackTrace();
+//							}
+						}
+					}
+					
+				}
+			});
+			btnCopiar.setEnabled(false);
+			btnCopiar.setFont(new Font("Tahoma", Font.PLAIN, 13));
+		}
+		return btnCopiar;
+	}
+	private JButton getBtnBorrar() {
+		if (btnBorrar == null) {
+			btnBorrar = new JButton("Borrar");
+			btnBorrar.setEnabled(false);
+			btnBorrar.setFont(new Font("Tahoma", Font.PLAIN, 13));
+		}
+		return btnBorrar;
+	}
+	private JRadioButton getRdbtnMediosUtilizados() {
+		if (rdbtnMediosUtilizados == null) {
+			rdbtnMediosUtilizados = new JRadioButton("Medios utilizados");
+			rdbtnMediosUtilizados.setEnabled(false);
+			rdbtnMediosUtilizados.setFont(new Font("Tahoma", Font.PLAIN, 13));
+			rdbtnMediosUtilizados.setForeground(new Color(0, 128, 0));
+		}
+		return rdbtnMediosUtilizados;
+	}
+	private JRadioButton getRdbtnMediosNoUtilizados() {
+		if (rdbtnMediosNoUtilizados == null) {
+			rdbtnMediosNoUtilizados = new JRadioButton("Medios NO utilizados");
+			rdbtnMediosNoUtilizados.setEnabled(false);
+			rdbtnMediosNoUtilizados.setFont(new Font("Tahoma", Font.PLAIN, 13));
+			rdbtnMediosNoUtilizados.setSelected(true);
+			rdbtnMediosNoUtilizados.setForeground(new Color(220, 20, 60));
+		}
+		return rdbtnMediosNoUtilizados;
+	}
+	
+	/**
+	 * Función para clonar SOLO las carpetas, sin el contenido
+	 * @param pathOrigen
+	 * @param pathDestino
+	 */
+	public static void clonarCarpetas(String pathOrigen, String pathDestino) {
+        File targetFile = new File(pathDestino);
+        if (!targetFile.exists()) {
+            targetFile.mkdir();
+        }
+        for (File f : new File(pathOrigen).listFiles()) {
+        	if (f.isDirectory()) {
+                String append = "/" + f.getName();
+                System.out.println("Creating '" + pathDestino + append + "': "
+                        + new File(pathDestino + append).mkdir());
+                clonarCarpetas(pathOrigen + append, pathDestino + append);
+            }
+        }
+    }   
 }
