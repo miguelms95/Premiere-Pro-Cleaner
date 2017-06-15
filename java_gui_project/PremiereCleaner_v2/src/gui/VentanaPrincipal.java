@@ -1164,12 +1164,12 @@ public class VentanaPrincipal extends JFrame {
 							System.out.println("origen: " + pathorigen.toString());
 							System.err.println("destino: " + pathdestino.toString());
 							
-//							try {
-//								Files.copy(pathorigen, pathdestino, REPLACE_EXISTING);
-//							} catch (IOException e) {
-//								// TODO Auto-generated catch block
-//								e.printStackTrace();
-//							}
+							try {
+								Files.copy(pathorigen, pathdestino, REPLACE_EXISTING);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
 					}
 					
