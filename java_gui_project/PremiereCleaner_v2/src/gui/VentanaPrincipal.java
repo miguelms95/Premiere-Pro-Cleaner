@@ -120,9 +120,9 @@ public class VentanaPrincipal extends JFrame {
 	private int contadorAVI = 0;
 	private int contadorDirectoriosPRV = 0;
 	private int contadorNoEliminados = 0;
-	private int tamCFA = 0;	// contador para calcular tamaños totales
-	private int tamPEK = 0;
-	private int tamAVI = 0;
+	private long tamCFA = 0;	// contador para calcular tamaños totales
+	private long tamPEK = 0;
+	private long tamAVI = 0;
 	
 	private JMenuBar menuBar;
 	private JMenu mnAplicacin;
@@ -487,7 +487,7 @@ public class VentanaPrincipal extends JFrame {
 	 * @param accion
 	 */
 	private void printStats(String accion){
-		int tamTotal = Math.abs(tamAVI) + Math.abs(tamPEK) +Math.abs(tamCFA);
+		long tamTotal = Math.abs(tamAVI) + Math.abs(tamPEK) +Math.abs(tamCFA);
 		
 //		System.out.println("#### RESUMEN ARCHIVOS "+accion+" ###");
 //		System.out.println(contadorDirectoriosPRV + " directorios temporales encontrados");
@@ -947,6 +947,8 @@ public class VentanaPrincipal extends JFrame {
 			rdbtnMediosNoUtilizados.setEnabled(false);
 		else
 			rdbtnMediosNoUtilizados.setEnabled(true);
+		btStop.setEnabled(false);
+		btStop.setForeground(Color.LIGHT_GRAY);
 	}
 	
 	private void escanearProyecto(){
@@ -970,7 +972,7 @@ public class VentanaPrincipal extends JFrame {
 					File f = new File(ruta);
 					if(f.exists()){
 						contadorUtilizados +=1;
-						System.out.println(f.getAbsolutePath() + ", file: " + contadorUtilizados);
+//						System.out.println(f.getAbsolutePath() + ", file: " + contadorUtilizados);
 						modeloListaUtilizados.addElement(f);
 						listaMediosUtilizados.add(f);
 					}
@@ -1180,7 +1182,13 @@ public class VentanaPrincipal extends JFrame {
 								clonarCarpetas(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
 								
 								// copio antiguos en nuevos
-								for (File file : listaMediosNoUtilizados) {
+								ArrayList<File> lista = null;
+								if(rdbtnMediosNoUtilizados.isSelected())
+									lista = listaMediosNoUtilizados;
+								else
+									lista = listaMediosUtilizados;
+								
+								for (File file : lista) {
 									if(!file.getAbsolutePath().equals(txPathProyecto.getText())){
 										progressbarGestor.setValue(progressbarGestor.getValue()+1);
 										progressbarGestor.setString("Copiando... " + file.getAbsolutePath());
@@ -1189,8 +1197,8 @@ public class VentanaPrincipal extends JFrame {
 										String nuevaRuta = rutaPadreActual.replace(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
 										Path pathorigen = Paths.get(rutaPadreActual);
 										Path pathdestino = Paths.get(nuevaRuta);
-										System.out.println("origen: " + pathorigen.toString());
-										System.err.println("destino: " + pathdestino.toString());
+//										System.out.println("origen: " + pathorigen.toString());
+//										System.err.println("destino: " + pathdestino.toString());
 										
 										try {
 											Files.copy(pathorigen, pathdestino, REPLACE_EXISTING);
@@ -1260,8 +1268,7 @@ public class VentanaPrincipal extends JFrame {
         for (File f : new File(pathOrigen).listFiles()) {
         	if (f.isDirectory()) {
                 String append = "/" + f.getName();
-                System.out.println("Creating '" + pathDestino + append + "': "
-                        + new File(pathDestino + append).mkdir());
+//                System.out.println("Creating '" + pathDestino + append + "': " + new File(pathDestino + append).mkdir());
                 clonarCarpetas(pathOrigen + append, pathDestino + append);
             }
         }
