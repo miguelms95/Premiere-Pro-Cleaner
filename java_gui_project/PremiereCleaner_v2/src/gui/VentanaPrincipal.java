@@ -186,6 +186,10 @@ public class VentanaPrincipal extends JFrame {
 	private JProgressBar progressbarGestor;
 	private JButton btnStop;
 	private JCheckBoxMenuItem chckbxmntmEliminarCarpetasVacas;
+	private JMenuItem mntmSeleccionarProyecto;
+	private JSeparator separator_1;
+	private JMenuItem mntmEscanearMedios;
+	private JMenuItem mntmLimpiarListas;
 	
 	/**
 	 * Launch the application.
@@ -546,6 +550,10 @@ public class VentanaPrincipal extends JFrame {
 		if (mnAplicacin == null) {
 			mnAplicacin = new JMenu("Aplicaci\u00F3n");
 			mnAplicacin.setMnemonic('a');
+			mnAplicacin.add(getMntmSeleccionarProyecto());
+			mnAplicacin.add(getMntmEscanearMedios());
+			mnAplicacin.add(getMntmLimpiarListas());
+			mnAplicacin.add(getSeparator_1());
 			mnAplicacin.add(getMntmSeleccionarDirectorio());
 			mnAplicacin.add(getMntmEjecutar());
 			mnAplicacin.add(getMntmEcanearYLimpiar());
@@ -566,6 +574,7 @@ public class VentanaPrincipal extends JFrame {
 	private JMenuItem getMntmSeleccionarDirectorio() {
 		if (mntmSeleccionarDirectorio == null) {
 			mntmSeleccionarDirectorio = new JMenuItem("Seleccionar directorio...");
+			mntmSeleccionarDirectorio.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
 			mntmSeleccionarDirectorio.setMnemonic('s');
 			mntmSeleccionarDirectorio.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
@@ -579,7 +588,7 @@ public class VentanaPrincipal extends JFrame {
 		if (mntmEjecutar == null) {
 			mntmEjecutar = new JMenuItem("Solo escanear");
 			mntmEjecutar.setMnemonic('e');
-			mntmEjecutar.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK));
+			mntmEjecutar.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
 			mntmEjecutar.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					
@@ -806,7 +815,7 @@ public class VentanaPrincipal extends JFrame {
 				}
 			});
 			mntmEcanearYLimpiar.setMnemonic('l');
-			mntmEcanearYLimpiar.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_MASK));
+			mntmEcanearYLimpiar.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
 		}
 		return mntmEcanearYLimpiar;
 	}
@@ -874,26 +883,30 @@ public class VentanaPrincipal extends JFrame {
 			btnSeleccionarProyecto.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					
-					File tempFile = new File(txPathProyecto.getText().toString());
-					JFileChooser jf = null;
-					if(tempFile.exists())
-						jf = new JFileChooser(txPathProyecto.getText().toString());
-					else
-						jf = new JFileChooser(System.getProperty("user.home") + "/Desktop");
-					jf.setFileSelectionMode(JFileChooser.FILES_ONLY);
-					jf.setFileFilter(new FileNameExtensionFilter("Projectos Adobe Premiere .prproj","prproj"));
-					
-					if(jf.showOpenDialog(vp) == JFileChooser.APPROVE_OPTION){
-						txPathProyecto.setText(jf.getSelectedFile().getAbsolutePath());
-						btEscanearMedios.grabFocus();
-						btEscanearMedios.doClick();
-					}
+					seleccionarProyecto();
 					
 				}
 			});
 			btnSeleccionarProyecto.setFont(new Font("Tahoma", Font.PLAIN, 13));
 		}
 		return btnSeleccionarProyecto;
+	}
+	
+	private void seleccionarProyecto(){
+		File tempFile = new File(txPathProyecto.getText().toString());
+		JFileChooser jf = null;
+		if(tempFile.exists())
+			jf = new JFileChooser(txPathProyecto.getText().toString());
+		else
+			jf = new JFileChooser(System.getProperty("user.home") + "/Desktop");
+		jf.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		jf.setFileFilter(new FileNameExtensionFilter("Projectos Adobe Premiere .prproj","prproj"));
+		
+		if(jf.showOpenDialog(vp) == JFileChooser.APPROVE_OPTION){
+			txPathProyecto.setText(jf.getSelectedFile().getAbsolutePath());
+			btEscanearMedios.grabFocus();
+			btEscanearMedios.doClick();
+		}
 	}
 	private JPanel getPanel_5() {
 		if (panel_5 == null) {
@@ -920,31 +933,35 @@ public class VentanaPrincipal extends JFrame {
 			btEscanearMedios.setFont(new Font("Tahoma", Font.BOLD, 13));
 			btEscanearMedios.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					resetData();
-					resetProgress();
-					modeloListaNoUtilizados.clear();
-					modeloListaUtilizados.clear();
 					
-					String txLogAntes = txAreaLog.getText();
-					long t1 = System.currentTimeMillis();
-					escanearProyecto();
-					long t2 = System.currentTimeMillis();
-					lblTiempoMs.setText("Escaneado en "+(t2-t1)+" ms");
-					txAreaLog.setText(txLogAntes);
-					
-					if(listaMediosUtilizados.size()==0)
-						JOptionPane.showMessageDialog(vp, "Se han encontrado 0 archivos en el proyecto.\nAbre el proyecto de premiere y comprueba que los medios están localizados","Atención: localiza los medios del proyecto",JOptionPane.WARNING_MESSAGE);
-
-					actualizarBotones();
-					
-					
+					escanearMediosAccion();
 				}
 			});
 		}
 		return btEscanearMedios;
 	}
+	
+	private void escanearMediosAccion(){
+		resetData();
+		resetProgress();
+		modeloListaNoUtilizados.clear();
+		modeloListaUtilizados.clear();
+		
+		String txLogAntes = txAreaLog.getText();
+		long t1 = System.currentTimeMillis();
+		escanearProyecto();
+		long t2 = System.currentTimeMillis();
+		lblTiempoMs.setText("Escaneado en "+(t2-t1)+" ms");
+		txAreaLog.setText(txLogAntes);
+		
+		if(listaMediosUtilizados.size()==0)
+			JOptionPane.showMessageDialog(vp, "Se han encontrado 0 archivos en el proyecto.\nAbre el proyecto de premiere y comprueba que los medios están localizados","Atención: localiza los medios del proyecto",JOptionPane.WARNING_MESSAGE);
+
+		actualizarBotones();
+	}
 	private void actualizarBotones(){
-		if(listaMediosUtilizados.size() == 0 || listaMediosNoUtilizados.size() == 0){
+		rdbtnMediosNoUtilizados.setSelected(true);
+		if(listaMediosUtilizados.size() == 0 && listaMediosNoUtilizados.size() == 0){
 			btMover.setEnabled(false);
 			btnCopiar.setEnabled(false);
 			btnBorrar.setEnabled(false);
@@ -953,14 +970,16 @@ public class VentanaPrincipal extends JFrame {
 			btnCopiar.setEnabled(true);
 			btnBorrar.setEnabled(true);
 		}
-		if(listaMediosUtilizados.size()==0)
+		if(listaMediosUtilizados.size()==0){
 			rdbtnMediosUtilizados.setEnabled(false);
-		else
+			rdbtnMediosNoUtilizados.setSelected(true);
+		}else
 			rdbtnMediosUtilizados.setEnabled(true);
 		
-		if(listaMediosNoUtilizados.size()==0)
+		if(listaMediosNoUtilizados.size()==0){
 			rdbtnMediosNoUtilizados.setEnabled(false);
-		else
+			rdbtnMediosUtilizados.setSelected(true);
+		}else
 			rdbtnMediosNoUtilizados.setEnabled(true);
 		btStop.setEnabled(false);
 		btStop.setForeground(Color.LIGHT_GRAY);
@@ -1013,7 +1032,7 @@ public class VentanaPrincipal extends JFrame {
 			e.printStackTrace();
 		}
 		
-		System.err.println(file.getParent());
+		//System.err.println(file.getParent());
 		
 		// SEGUNDO escaneo TODOS los archivos  menos los basura para no utilizarlos luego
 		escanearArchivos(file.getParent());
@@ -1171,21 +1190,26 @@ public class VentanaPrincipal extends JFrame {
 			btnLimpiarMedios = new JButton("Limpiar listas");
 			btnLimpiarMedios.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					modeloListaNoUtilizados.clear();
-					modeloListaUtilizados.clear();
-					listaMediosNoUtilizados.clear();
-					listaMediosUtilizados.clear();
-					resetData();
-					
-					lblMediosUtilizados.setText(" Medios utilizados:");
-					lblMediosNoUtilizados.setText(" Medios NO utilizados:");
-					actualizarBotones();
+					limpiarListas();
 				}
 			});
 			btnLimpiarMedios.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		}
 		return btnLimpiarMedios;
 	}
+	
+	private void limpiarListas(){
+		modeloListaNoUtilizados.clear();
+		modeloListaUtilizados.clear();
+		listaMediosNoUtilizados.clear();
+		listaMediosUtilizados.clear();
+		resetData();
+		
+		lblMediosUtilizados.setText(" Medios utilizados:");
+		lblMediosNoUtilizados.setText(" Medios NO utilizados:");
+		actualizarBotones();
+	}
+	
 	private JButton getBtMover() {
 		if (btMover == null) {
 			btMover = new JButton("Mover");
@@ -1230,7 +1254,7 @@ public class VentanaPrincipal extends JFrame {
 		jf.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		jf.setApproveButtonText("Seleccionar");
 		
-		if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
+		if(opcion == 3 || jf.showOpenDialog(vp) == jf.APPROVE_OPTION){ // el borrado no tiene popup
 			String txPopup = "";
 			if(opcion == 1 || opcion == 2){
 				if(rdbtnMediosUtilizados.isSelected())
@@ -1256,9 +1280,9 @@ public class VentanaPrincipal extends JFrame {
 						// primero clono estructura de carpetas sin ficheros
 						if(opcion == 1 || opcion == 2){
 							clonarCarpetas(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
-							if(chckbxmntmEliminarCarpetasVacas.isSelected())
-								eliminarCarpetasVacias(jf.getSelectedFile().getAbsolutePath());
 						}
+						if(chckbxmntmEliminarCarpetasVacas.isSelected())
+							eliminarCarpetasVacias(pathProject);
 						
 						// selecciono lista a tratar
 						ArrayList<File> lista = null;
@@ -1305,11 +1329,18 @@ public class VentanaPrincipal extends JFrame {
 								}
 							}
 						}
+						// vuelvo a limpiar carpetas por si alguna queda vacía tras el borrado
+						if(chckbxmntmEliminarCarpetasVacas.isSelected())
+							eliminarCarpetasVacias(pathProject);
+						
 						progressbarGestor.setString("100%");
 						progressbarGestor.setValue(progressbarGestor.getMaximum());
 						long t2 =  System.currentTimeMillis();
 						lblTiempoMs.setText("Tiempo: "+(t2-t1)+" ms");
 						JOptionPane.showMessageDialog(vp, "Operación finalizada con éxito.\nDuración: "+(t2-t1)+" milisegundos", "Premiere Cleaner: Operación finalizada", JOptionPane.INFORMATION_MESSAGE);
+						
+						// Re-escaneo el proyecto para que se actualicen las listas tras el borrado/copia/movimiento
+						escanearProyecto();
 					};
 					
 				};
@@ -1476,5 +1507,47 @@ public class VentanaPrincipal extends JFrame {
 			chckbxmntmEliminarCarpetasVacas.setSelected(true);
 		}
 		return chckbxmntmEliminarCarpetasVacas;
+	}
+	private JMenuItem getMntmSeleccionarProyecto() {
+		if (mntmSeleccionarProyecto == null) {
+			mntmSeleccionarProyecto = new JMenuItem("Seleccionar proyecto...");
+			mntmSeleccionarProyecto.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_MASK));
+			mntmSeleccionarProyecto.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					seleccionarProyecto();
+				}
+			});
+		}
+		return mntmSeleccionarProyecto;
+	}
+	private JSeparator getSeparator_1() {
+		if (separator_1 == null) {
+			separator_1 = new JSeparator();
+		}
+		return separator_1;
+	}
+	private JMenuItem getMntmEscanearMedios() {
+		if (mntmEscanearMedios == null) {
+			mntmEscanearMedios = new JMenuItem("Escanear medios");
+			mntmEscanearMedios.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK));
+			mntmEscanearMedios.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					escanearMediosAccion();
+				}
+			});
+		}
+		return mntmEscanearMedios;
+	}
+	private JMenuItem getMntmLimpiarListas() {
+		if (mntmLimpiarListas == null) {
+			mntmLimpiarListas = new JMenuItem("Limpiar listas");
+			mntmLimpiarListas.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_MASK));
+			mntmLimpiarListas.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					limpiarListas();
+				}
+			});
+		}
+		return mntmLimpiarListas;
 	}
 }
