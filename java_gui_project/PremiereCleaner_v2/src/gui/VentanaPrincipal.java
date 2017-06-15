@@ -25,6 +25,7 @@ import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import javax.swing.JTextField;
@@ -50,6 +51,8 @@ import javax.swing.ImageIcon;
 import java.awt.Toolkit;
 import java.awt.Dimension;
 import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
+
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import javax.swing.SwingConstants;
@@ -74,6 +77,7 @@ import javax.swing.border.SoftBevelBorder;
 import javax.swing.border.BevelBorder;
 import javax.swing.AbstractListModel;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JRadioButton;
 import static java.nio.file.StandardCopyOption.*;
@@ -111,6 +115,8 @@ public class VentanaPrincipal extends JFrame {
 	
 	private int contadorUtilizados = 0;
 	private int contadorNoUtilizados = 0;
+	private DecimalFormat df = new DecimalFormat("#.00"); 
+	private String pathProject = "";
 	
 	
 	private JScrollPane scrollPane;
@@ -876,6 +882,7 @@ public class VentanaPrincipal extends JFrame {
 					if(jf.showOpenDialog(vp) == JFileChooser.APPROVE_OPTION){
 						txPathProyecto.setText(jf.getSelectedFile().getAbsolutePath());
 						btEscanearMedios.grabFocus();
+						btEscanearMedios.doClick();
 					}
 					
 				}
@@ -953,6 +960,7 @@ public class VentanaPrincipal extends JFrame {
 	
 	private void escanearProyecto(){
 		File file = new File(txPathProyecto.getText().toString()); // ruta absoluta al proyecto
+		pathProject =  new File(txPathProyecto.getText().toString()).getParent().toString();
 		
 		// PRIMERO escaneo los medios utilizados
 		
@@ -1006,8 +1014,11 @@ public class VentanaPrincipal extends JFrame {
 		for (File file2 : listaMediosNoUtilizados) {
 			sizeNOUtilizados += file2.length();
 		}
-		lblMediosUtilizados.setText(" Medios utilizados ("+listaMediosUtilizados.size()+" archivos = "+sizeUtilizados/1000000000.0+" GB):");
-		lblMediosNoUtilizados.setText(" Medios NO utilizados ("+listaMediosNoUtilizados.size()+ " archivos = "+sizeNOUtilizados/1000000000.0+" GB):");
+		if((sizeUtilizados/1000000000.0)<1000000000)
+			df = new DecimalFormat("0.00");
+		
+		lblMediosUtilizados.setText(" Medios utilizados ("+listaMediosUtilizados.size()+" archivos = "+df.format((sizeUtilizados/1000000000.0))+" GB):");
+		lblMediosNoUtilizados.setText(" Medios NO utilizados ("+listaMediosNoUtilizados.size()+ " archivos = "+df.format(sizeNOUtilizados/1000000000.0)+" GB):");
 	}
 	
 	
@@ -1031,7 +1042,8 @@ public class VentanaPrincipal extends JFrame {
 		        		printName = file.getName();
 			        if (file.isFile()) {
 			        	if(!listaArchivos.contains(file) // que no este en la basura
-			        			&& !listaMediosUtilizados.contains(file)){ // no está en los utilizados
+			        			&& !listaMediosUtilizados.contains(file)
+			        			&& !new File(txPathProyecto.getText().toString()).equals(file)){ // no está en los utilizados
 			        		modeloListaNoUtilizados.addElement(file);
 			        		listaMediosNoUtilizados.add(file);
 			        	}
@@ -1084,6 +1096,7 @@ public class VentanaPrincipal extends JFrame {
 			
 			listaUtilizados.setModel(modeloListaUtilizados);
 			listaUtilizados.setBorder(new LineBorder(new Color(192, 192, 192)));
+			listaUtilizados.setCellRenderer(new renderFiles());
 		}
 		return listaUtilizados;
 	}
@@ -1092,6 +1105,7 @@ public class VentanaPrincipal extends JFrame {
 			listaNoUtilizados = new JList();
 			listaNoUtilizados.setModel(modeloListaNoUtilizados);
 			listaNoUtilizados.setBorder(new LineBorder(new Color(192, 192, 192)));
+			listaNoUtilizados.setCellRenderer(new renderFiles());
 		}
 		return listaNoUtilizados;
 	}
@@ -1158,6 +1172,11 @@ public class VentanaPrincipal extends JFrame {
 	private JButton getBtMover() {
 		if (btMover == null) {
 			btMover = new JButton("Mover");
+			btMover.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					ejecucionMedios(1);
+				}
+			});
 			btMover.setEnabled(false);
 			btMover.setFont(new Font("Tahoma", Font.PLAIN, 13));
 		}
@@ -1181,72 +1200,117 @@ public class VentanaPrincipal extends JFrame {
 	 * @param opcion 1 =  Mover, 2 = Copiar, 3 = Borrar
 	 */
 	private void ejecucionMedios(int opcion){
+		String textoOperacion1 = "";
+		if(opcion==1)
+			textoOperacion1 = "mover";
+		else if(opcion==2)
+			textoOperacion1 = "copiar";
+		else
+			textoOperacion1 = "borrar";
+		
 		File origen = new File(txPathProyecto.getText());
 		JFileChooser jf = new JFileChooser(origen.getParent());
 		jf.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		jf.setApproveButtonText("Seleccionar");
+		
 		if(jf.showOpenDialog(vp) == jf.APPROVE_OPTION){
-			thread1 = new Thread(){
-				public void run() {
-					long t1 = System.currentTimeMillis();
-					progressbarGestor.setMaximum(listaMediosNoUtilizados.size());
-					
-					
-					// primero clono estructura de carpetas sin ficheros
-					if(opcion == 1 || opcion == 2)
-						clonarCarpetas(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
-					
-					// selecciono lista a tratar
-					ArrayList<File> lista = null;
-					if(rdbtnMediosNoUtilizados.isSelected())
-						lista = listaMediosNoUtilizados;
-					else
-						lista = listaMediosUtilizados;
-					
-					
-					for (File file : lista) {
-						if(!file.getAbsolutePath().equals(txPathProyecto.getText())){
-							progressbarGestor.setValue(progressbarGestor.getValue()+1);
-							String textoOperacion = "";
-							if(opcion==1)
-								textoOperacion = "Moviendo";
-							else if(opcion==2)
-								textoOperacion = "Copiando";
-							else
-								textoOperacion = "Borrando";
-							
-							progressbarGestor.setString(textoOperacion + "... " + file.getAbsolutePath());
-							progressbarGestor.repaint();
-							String rutaPadreActual = file.getAbsolutePath();
-							String nuevaRuta = rutaPadreActual.replace(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
-							Path pathorigen = Paths.get(rutaPadreActual);
-							Path pathdestino = Paths.get(nuevaRuta);
-//							System.out.println("origen: " + pathorigen.toString());
-//							System.err.println("destino: " + pathdestino.toString());
-							
-							try {
-								Files.copy(pathorigen, pathdestino, REPLACE_EXISTING);
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+			String txPopup = "";
+			if(opcion == 1 || opcion == 2){
+				if(rdbtnMediosUtilizados.isSelected())
+					txPopup = "Vas a "+textoOperacion1+" los medios utilizados ("+listaMediosUtilizados.size()+" archivos) al siguiente directorio:\n"+jf.getSelectedFile().getAbsolutePath().toString()+". ¿Estás seguro?";
+				else
+					txPopup = "Vas a "+textoOperacion1+" los medios NO utilizados ("+listaMediosNoUtilizados.size()+" archivos) al siguiente directorio:\n"+jf.getSelectedFile().getAbsolutePath().toString()+". ¿Estás seguro?";
+			}else{
+				if(rdbtnMediosUtilizados.isSelected()){
+					txPopup = "Vas a borrar los medios utilizados ("+listaMediosUtilizados.size()+" archivos) de su ubicación. ¿Estás seguro?";
+				}else if(rdbtnMediosNoUtilizados.isSelected()){
+					txPopup = "Vas a borrar los medios NO utilizados ("+listaMediosNoUtilizados.size()+" archivos) de su ubicación. ¿Estás seguro?";
+				}
+				
+			}
+			JOptionPane confirm = new JOptionPane(txPopup, JOptionPane.QUESTION_MESSAGE);
+			if(JOptionPane.showConfirmDialog(vp, txPopup,"Confirma operación",JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+				thread1 = new Thread(){
+					public void run() {
+						long t1 = System.currentTimeMillis();
+						progressbarGestor.setMaximum(listaMediosNoUtilizados.size());
+						
+						
+						// primero clono estructura de carpetas sin ficheros
+						if(opcion == 1 || opcion == 2){
+							clonarCarpetas(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
+							if(opcion == 1)
+								eliminarCarpetasVacias(jf.getSelectedFile().getAbsolutePath());
+						}
+						
+						// selecciono lista a tratar
+						ArrayList<File> lista = null;
+						if(rdbtnMediosNoUtilizados.isSelected())
+							lista = listaMediosNoUtilizados;
+						else
+							lista = listaMediosUtilizados;
+						
+						
+						for (File file : lista) {
+							if(!file.getAbsolutePath().equals(txPathProyecto.getText())){
+								String textoOperacion = "";
+								if(opcion==1)
+									textoOperacion = "Moviendo";
+								else if(opcion==2)
+									textoOperacion = "Copiando";
+								else
+									textoOperacion = "Borrando";
+								
+								progressbarGestor.setValue(progressbarGestor.getValue()+1);
+								progressbarGestor.setString(textoOperacion + "... " + file.getAbsolutePath());
+								progressbarGestor.repaint();
+								try{
+									if(opcion == 1 || opcion == 2){
+										String rutaPadreActual = file.getAbsolutePath();
+										String nuevaRuta = rutaPadreActual.replace(origen.getParentFile().getAbsolutePath(), jf.getSelectedFile().getAbsolutePath());
+										Path pathorigen = Paths.get(rutaPadreActual);
+										Path pathdestino = Paths.get(nuevaRuta);
+									
+									
+		//							System.out.println("origen: " + pathorigen.toString());
+		//							System.err.println("destino: " + pathdestino.toString());
+								
+										if(opcion == 1)
+											Files.move(pathorigen, pathdestino, REPLACE_EXISTING);
+										else if(opcion==2)
+											Files.copy(pathorigen, pathdestino, REPLACE_EXISTING);
+									}else if(opcion == 3){
+										Files.delete(Paths.get(file.getAbsolutePath()));
+									}
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
 							}
 						}
-					}
-					progressbarGestor.setString("100%");
-					progressbarGestor.setValue(progressbarGestor.getMaximum());
-					long t2 =  System.currentTimeMillis();
-					lblTiempoMs.setText("Tiempo: "+(t2-t1)+" ms");
+						progressbarGestor.setString("100%");
+						progressbarGestor.setValue(progressbarGestor.getMaximum());
+						long t2 =  System.currentTimeMillis();
+						lblTiempoMs.setText("Tiempo: "+(t2-t1)+" ms");
+						JOptionPane.showMessageDialog(vp, "Operación finalizada con éxito.\nDuración: "+(t2-t1)+" milisegundos", "Premiere Cleaner: Operación finalizada", JOptionPane.INFORMATION_MESSAGE);
+					};
+					
 				};
-				
-			};
-			btnStop.setEnabled(true);
-			btnStop.setForeground(Color.RED);
-			thread1.start();
+				btnStop.setEnabled(true);
+				btnStop.setForeground(Color.RED);
+				thread1.start();
+			}
 		}
 	}
 	
 	private JButton getBtnBorrar() {
 		if (btnBorrar == null) {
 			btnBorrar = new JButton("Borrar");
+			btnBorrar.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					ejecucionMedios(3);
+				}
+			});
 			btnBorrar.setEnabled(false);
 			btnBorrar.setFont(new Font("Tahoma", Font.PLAIN, 13));
 		}
@@ -1283,13 +1347,27 @@ public class VentanaPrincipal extends JFrame {
             targetFile.mkdir();
         }
         for (File f : new File(pathOrigen).listFiles()) {
-        	if (f.isDirectory()) {
+        	if (f.isDirectory() && !f.getAbsolutePath().toString().equals(pathDestino)) {
                 String append = "/" + f.getName();
 //                System.out.println("Creating '" + pathDestino + append + "': " + new File(pathDestino + append).mkdir());
                 clonarCarpetas(pathOrigen + append, pathDestino + append);
             }
         }
-    }   
+    }
+	
+	public static void eliminarCarpetasVacias(String path){
+		 for (File f : new File(path).listFiles()) {
+			 eliminarCarpetasVacias(f.getAbsolutePath());
+			 if(f.listFiles().length == 0){
+				try {
+					Files.delete(f.toPath());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		 }
+	}
 	private JPanel getPanel_6() {
 		if (panel_6 == null) {
 			panel_6 = new JPanel();
@@ -1351,4 +1429,24 @@ public class VentanaPrincipal extends JFrame {
 		}
 		return btnStop;
 	}
+	
+	/**
+	 * 
+	 * Clase para modificar los prints del jlist, en lugar del path completo la ruta relativa al proyecto que s eha cargado
+	 *
+	 */
+	class renderFiles extends DefaultListCellRenderer implements ListCellRenderer<Object>
+	{
+	    // Use this to show relative paths instead of absolute.  
+	    @Override
+	    public Component getListCellRendererComponent(
+	            JList<? extends Object> list, Object value, int index,
+	            boolean isSelected, boolean cellHasFocus) {
+
+	        String relative = ((File) value).toPath().toString();
+	        relative = relative.replace(pathProject, "");
+
+	        return super.getListCellRendererComponent(list, relative, index, isSelected, cellHasFocus);
+	    }
+    }
 }
