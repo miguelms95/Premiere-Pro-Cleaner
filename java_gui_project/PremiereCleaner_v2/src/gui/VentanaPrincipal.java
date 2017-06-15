@@ -341,7 +341,7 @@ public class VentanaPrincipal extends JFrame {
 	 * Escanea y lista los archivos recursivamente a partir del directorio pasado por parametro
 	 * @param directoryName
 	 */
-	public void escanearArchivos(String directoryName) {
+	public void escanearArchivos(String directoryName, boolean updateProgressBar) {
 	    File directorio = new File(directoryName);
 	    
 //    	System.out.println(directorio.getName());
@@ -357,8 +357,8 @@ public class VentanaPrincipal extends JFrame {
 	    	if(directorio.getName() == "RECYCLER")
 	    		System.err.println("ENTRO EN CAMPO PELIGROSO. DEBUG.");
 		    File[] fList = directorio.listFiles();
-		    
-		    progressBar.setString(directorio.getAbsolutePath());
+		    if(updateProgressBar)
+		    	progressBar.setString(directorio.getAbsolutePath());
 		    for (int i=0; fList != null && i<fList.length;i++) {
 		    	File file = fList[i];
 		    	if(!file.isHidden()){
@@ -387,7 +387,7 @@ public class VentanaPrincipal extends JFrame {
 			        	
 			        }else if (file.isDirectory()) {
 			        	// simulación imperfecta de progreso
-			        	if(progressBar.getValue() < progressBar.getMaximum()-1){
+			        	if(updateProgressBar && progressBar.getValue() < progressBar.getMaximum()-1){
 			        		progressBar.setValue(progressBar.getValue()+1);
 			        		progressBar.repaint();
 			        	}
@@ -401,7 +401,7 @@ public class VentanaPrincipal extends JFrame {
 			        	}
 			        	if(file.getName() == "RECYCLER")
 				    		System.err.println("######## ENTRO EN CAMPO PELIGROSO. DEBUG. ########");
-			        	escanearArchivos(file.getAbsolutePath());
+			        	escanearArchivos(file.getAbsolutePath(), updateProgressBar);
 			        }
 		        }
 		    } // fin for
@@ -475,7 +475,7 @@ public class VentanaPrincipal extends JFrame {
 			btStop.setEnabled(true);
 			btStop.setForeground(Color.RED);
 			long t1 = System.currentTimeMillis();
-			escanearArchivos(txPathSeleccionado.getText());
+			escanearArchivos(txPathSeleccionado.getText(),true);
 			long t2 = System.currentTimeMillis();
 			progressBar.setValue(progressBar.getMaximum());
 			progressBar.setString("100%");
@@ -1061,7 +1061,7 @@ public class VentanaPrincipal extends JFrame {
 		//System.err.println(file.getParent());
 		
 		// SEGUNDO escaneo TODOS los archivos  menos los basura para no utilizarlos luego
-		escanearArchivos(file.getParent());
+		escanearArchivos(file.getParent(),false);
 		// en "listaArchivos" tengo toda la basura
 		
 		escanearMediosNoUtilizados(file.getParent());
@@ -1093,7 +1093,7 @@ public class VentanaPrincipal extends JFrame {
 	    	
 		    File[] fList = directorio.listFiles();
 		    
-		    //progressBar.setString(directorio.getAbsolutePath());
+		    progressbarGestor.setString(directorio.getAbsolutePath());
 		    for (int i=0; fList != null && i<fList.length;i++) {
 		    	File file = fList[i];
 		    	if(!file.isHidden()){
