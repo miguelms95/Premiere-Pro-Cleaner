@@ -882,9 +882,13 @@ public class VentanaPrincipal extends JFrame {
 			btnSeleccionarProyecto = new JButton("Seleccionar proyecto");
 			btnSeleccionarProyecto.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					
-					seleccionarProyecto();
-					
+//					
+//					thread1 = new Thread(){
+//						public void run() {
+							seleccionarProyecto();
+//						};
+//					};
+//					thread1.start();
 				}
 			});
 			btnSeleccionarProyecto.setFont(new Font("Tahoma", Font.PLAIN, 13));
@@ -901,11 +905,16 @@ public class VentanaPrincipal extends JFrame {
 			jf = new JFileChooser(System.getProperty("user.home") + "/Desktop");
 		jf.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		jf.setFileFilter(new FileNameExtensionFilter("Projectos Adobe Premiere .prproj","prproj"));
+		jf.setApproveButtonText("Seleccionar");
 		
 		if(jf.showOpenDialog(vp) == JFileChooser.APPROVE_OPTION){
 			txPathProyecto.setText(jf.getSelectedFile().getAbsolutePath());
+			//txPathProyecto.repaint();
+			
+			pathProject =  new File(txPathProyecto.getText().toString()).getParent().toString();
+			
 			btEscanearMedios.grabFocus();
-			btEscanearMedios.doClick();
+			escanearMediosAccion();
 		}
 	}
 	private JPanel getPanel_5() {
@@ -920,9 +929,8 @@ public class VentanaPrincipal extends JFrame {
 	private JTextField getTxPathProyecto() {
 		if (txPathProyecto == null) {
 			txPathProyecto = new JTextField();
-			txPathProyecto.setText("D:\\PROYECTO 6 - LOS TALENTOS\\Proyecto 6 - Capitulo Los Talentos.prproj");
+			txPathProyecto.setText(System.getProperty("user.home") + "\\Desktop");
 			txPathProyecto.setFont(new Font("Tahoma", Font.PLAIN, 13));
-			//txPathProyecto.setText("D:\\Documentos\\Investigaci\u00F3n\\PremiereCleaner\\Proyecto pruebas\\proyecto multimedia de pruebas.prproj");
 			txPathProyecto.setColumns(25);
 		}
 		return txPathProyecto;
@@ -934,7 +942,12 @@ public class VentanaPrincipal extends JFrame {
 			btEscanearMedios.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					
-					escanearMediosAccion();
+					thread1 = new Thread(){
+						public void run() {
+							escanearMediosAccion();						
+						};
+					};
+					thread1.run();
 				}
 			});
 		}
@@ -942,22 +955,36 @@ public class VentanaPrincipal extends JFrame {
 	}
 	
 	private void escanearMediosAccion(){
-		resetData();
-		resetProgress();
-		modeloListaNoUtilizados.clear();
-		modeloListaUtilizados.clear();
+		File file = new File(txPathProyecto.getText().toString()); // ruta absoluta al proyecto
+		if(file.exists() && file.isFile() && file.getName().substring(file.getName().length()-6).equals("prproj")){
+//			String fileName = file.getName();
+//			String extension = fileName.substring(fileName.length()-6);
+//			if(extension.equals("prproj")){
+				modeloListaNoUtilizados.clear();
+				modeloListaUtilizados.clear();	
+				resetData();
+				resetProgress();
+				
+				
+				String txLogAntes = txAreaLog.getText();
+				long t1 = System.currentTimeMillis();
+				escanearProyecto();
+				long t2 = System.currentTimeMillis();
+				lblTiempoMs.setText("Escaneado en "+(t2-t1)+" ms");
+				txAreaLog.setText(txLogAntes);
+				
+				if(listaMediosUtilizados.size()==0)
+					JOptionPane.showMessageDialog(vp, "Se han encontrado 0 archivos medios utilizados del proyecto.\nAbre el proyecto de premiere y comprueba que los medios están localizados.","Atención: localiza los medios del proyecto",JOptionPane.WARNING_MESSAGE);
 		
-		String txLogAntes = txAreaLog.getText();
-		long t1 = System.currentTimeMillis();
-		escanearProyecto();
-		long t2 = System.currentTimeMillis();
-		lblTiempoMs.setText("Escaneado en "+(t2-t1)+" ms");
-		txAreaLog.setText(txLogAntes);
-		
-		if(listaMediosUtilizados.size()==0)
-			JOptionPane.showMessageDialog(vp, "Se han encontrado 0 archivos en el proyecto.\nAbre el proyecto de premiere y comprueba que los medios están localizados","Atención: localiza los medios del proyecto",JOptionPane.WARNING_MESSAGE);
-
-		actualizarBotones();
+				actualizarBotones();
+//			}else{
+//				JOptionPane.showMessageDialog(vp, "Tienes que seleccionar un proyecto de premiere: .prproj","Error:Selecciona un proyecto de premiere",JOptionPane.ERROR_MESSAGE);
+//				seleccionarProyecto();
+//			}
+		}else{
+			JOptionPane.showMessageDialog(vp, "Tienes que seleccionar un proyecto de premiere: .prproj","Error:Selecciona un proyecto de premiere",JOptionPane.ERROR_MESSAGE);
+			seleccionarProyecto();
+		}
 	}
 	private void actualizarBotones(){
 		rdbtnMediosNoUtilizados.setSelected(true);
@@ -987,7 +1014,6 @@ public class VentanaPrincipal extends JFrame {
 	
 	private void escanearProyecto(){
 		File file = new File(txPathProyecto.getText().toString()); // ruta absoluta al proyecto
-		pathProject =  new File(txPathProyecto.getText().toString()).getParent().toString();
 		
 		// PRIMERO escaneo los medios utilizados
 		
@@ -1487,7 +1513,12 @@ public class VentanaPrincipal extends JFrame {
 	 */
 	class renderFiles extends DefaultListCellRenderer implements ListCellRenderer<Object>
 	{
-	    // Use this to show relative paths instead of absolute.  
+	    /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		// Use this to show relative paths instead of absolute.  
 	    @Override
 	    public Component getListCellRendererComponent(
 	            JList<? extends Object> list, Object value, int index,
@@ -1500,6 +1531,7 @@ public class VentanaPrincipal extends JFrame {
 	        return super.getListCellRendererComponent(list, relative, index, isSelected, cellHasFocus);
 	    }
     }
+	
 	private JCheckBoxMenuItem getChckbxmntmEliminarCarpetasVacas() {
 		if (chckbxmntmEliminarCarpetasVacas == null) {
 			chckbxmntmEliminarCarpetasVacas = new JCheckBoxMenuItem("Eliminar carpetas vac\u00EDas al limpiar");
