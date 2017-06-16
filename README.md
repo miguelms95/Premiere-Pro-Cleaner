@@ -1,6 +1,8 @@
-# Adobe Premiere Pro Proyect Cleaner
+# Premiere Pro Cleaner
 <img src="/java_gui_project/PremiereCleaner_v2/src/img/logo_small.png">
-Clean the Premiere Projects before backuping or moving it anywhere deleting unnecessary preview files, and audio / video renders for real time editing: .CFA, .PEK, .AVI.
+Clean the Adobre Premiere Pro Projects before backuping or moving it anywhere deleting unnecessary preview files, and audio / video renders for real time editing: .CFA, .PEK, .AVI.
+
+Program tested for CS4, CS5 and CS6 version.
 
 * <b>Move</b> or <b>copy</b> the used/unused media files to another folder and save only the files that the project needs.
 * <b>Delete</b> the used/unused media files.
