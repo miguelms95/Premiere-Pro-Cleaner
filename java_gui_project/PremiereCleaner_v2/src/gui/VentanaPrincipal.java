@@ -1027,18 +1027,39 @@ public class VentanaPrincipal extends JFrame {
 		try {
 			documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			Document document = documentBuilder.parse(file);
-			NodeList lista = document.getElementsByTagName("ActualMediaFilePath");
+//			NodeList lista = document.getElementsByTagName("ActualMediaFilePath");
 			
 			progressbarGestor.setEnabled(true);
 			
+//			for(int i = 0; i<lista.getLength();i++){
+//				String ruta = lista.item(i).getTextContent();
+//				if(!ruta.startsWith("1")){
+//					if(ruta.startsWith("\\\\?\\")){
+//						ruta = ruta.substring(4);
+//					}
+//					File f = new File(ruta);
+//					if(f.exists()){
+//						progressbarGestor.setString(f.getAbsolutePath());
+//						progressbarGestor.setValue(progressbarGestor.getValue()+1);
+//						progressbarGestor.repaint();
+//						contadorUtilizados +=1;
+////						System.out.println(f.getAbsolutePath() + ", file: " + contadorUtilizados);
+//						modeloListaUtilizados.addElement(f);
+//						listaMediosUtilizados.add(f);
+//					}
+//				}
+//			}
+			
+			NodeList lista = document.getElementsByTagName("RelativePath");
 			
 			for(int i = 0; i<lista.getLength();i++){
 				String ruta = lista.item(i).getTextContent();
 				if(!ruta.startsWith("1")){
-					if(ruta.startsWith("\\\\?\\")){
-						ruta = ruta.substring(4);
-					}
-					File f = new File(ruta);
+//					if(ruta.startsWith("\\\\?\\")){
+						ruta = ruta.substring(2);
+//					}
+					String nuevaRuta = pathProject +"\\"+ ruta;
+					File f = new File(nuevaRuta);
 					if(f.exists()){
 						progressbarGestor.setString(f.getAbsolutePath());
 						progressbarGestor.setValue(progressbarGestor.getValue()+1);
